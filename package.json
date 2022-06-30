@@ -39,6 +39,7 @@
     "@finsweet/eslint-config": "^1.1.5",
     "@playwright/test": "^1.22.2",
     "@trivago/prettier-plugin-sort-imports": "^3.2.0",
+    "@types/jquery": "^3.5.14",
     "@typescript-eslint/eslint-plugin": "^5.27.0",
     "@typescript-eslint/parser": "^5.27.0",
     "cross-env": "^7.0.3",
