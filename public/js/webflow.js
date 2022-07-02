@@ -18969,7 +18969,7 @@ Webflow.define('dropdown', module.exports = function ($, _) {
   var inPreview = false;
   var inDesigner;
   var touch = Webflow.env.touch;
-  var namespace = '.w-dropdown';
+  var namespace = '';
   var openStateClassName = 'w--open';
   var ix = IXEvents.triggers;
   var defaultZIndex = 900; // @dropdown-depth

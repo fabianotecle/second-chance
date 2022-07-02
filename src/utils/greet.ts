@@ -1,12 +1,12 @@
 /* eslint-disable no-console */
-import { getPublishDate } from '@finsweet/ts-utils';
+import * as tsUtils from '@finsweet/ts-utils';
 
 /**
  * Greets the user by printing a message in the console.
  * @param name The user's name.
  */
 export const greetUser = (name: string) => {
-  const publishDate = getPublishDate();
+  const publishDate = tsUtils.getPublishDate();
 
   console.log(`Hello ${name}!`);
   console.log(
