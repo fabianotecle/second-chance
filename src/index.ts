@@ -324,9 +324,13 @@ window.Webflow.push(() => {
       event.preventDefault();
       hideList();
       this.value = this.getAttribute('data-wait') as string;
+
+      const phoneNumber = document.querySelector('[name="phoneNumber"]') as HTMLInputElement;
+      const countryCode = document.querySelector('[name="countryCode"]') as HTMLInputElement;
+
       fetch('', {
         method: 'POST',
-        body: '',
+        body: 'phoneNumber=' + phoneNumber + '&countryCode=' + countryCode,
       })
         .then(() => {
           const formTag = document.getElementById('phone-form') as HTMLDivElement;
