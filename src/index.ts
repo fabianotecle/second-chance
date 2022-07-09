@@ -16,6 +16,9 @@ window.Webflow.push(async () => {
     name: '',
   };
 
+  const originalArray = await getArrayCountries();
+  const ignore = ['US', 'PR', 'RU', 'EH', 'KZ', 'VA', 'DO', 'SH'];
+
   let arrowIndex = 1;
 
   async function getArrayCountries() {
@@ -27,34 +30,6 @@ window.Webflow.push(async () => {
       return jsonCoutries.json();
     }
   }
-
-  const originalArray = await getArrayCountries();
-  const ignore = ['US', 'PR', 'RU', 'EH', 'KZ', 'VA', 'DO', 'SH'];
-
-  originalArray.forEach(function (row: {
-    idd: { root: string; suffixes: string[] };
-    cca2: string;
-    flags: { svg: string };
-    name: { common: string };
-  }) {
-    let prefix = '';
-    if (row.idd.root) {
-      prefix += row.idd.root;
-      if (row.idd.suffixes[0] && !ignore.includes(row.cca2)) {
-        prefix += row.idd.suffixes[0];
-      }
-    }
-    const country = {
-      cca2: row.cca2,
-      flag: row.flags.svg,
-      prefix: prefix,
-      name: row.name.common,
-    };
-    countries.push(country);
-    if (myCountry.cca2 === country.cca2) {
-      myCountry = country;
-    }
-  });
 
   function sortCountries(countries: Country[]) {
     let sorted = false;
@@ -300,6 +275,31 @@ window.Webflow.push(async () => {
       thanksDiv.style.display = 'block';
     }
   }
+
+  originalArray.forEach(function (row: {
+    idd: { root: string; suffixes: string[] };
+    cca2: string;
+    flags: { svg: string };
+    name: { common: string };
+  }) {
+    let prefix = '';
+    if (row.idd.root) {
+      prefix += row.idd.root;
+      if (row.idd.suffixes[0] && !ignore.includes(row.cca2)) {
+        prefix += row.idd.suffixes[0];
+      }
+    }
+    const country = {
+      cca2: row.cca2,
+      flag: row.flags.svg,
+      prefix: prefix,
+      name: row.name.common,
+    };
+    countries.push(country);
+    if (myCountry.cca2 === country.cca2) {
+      myCountry = country;
+    }
+  });
 
   sortCountries(countries);
   appendAllOptions(countries);
