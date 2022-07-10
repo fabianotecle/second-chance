@@ -255,27 +255,6 @@ window.Webflow.push(async () => {
     }
   }
 
-  async function postPhoneForm() {
-    const phoneNumber = document.querySelector('[name="phoneNumber"]') as HTMLInputElement;
-    const countryCode = document.querySelector('[name="countryCode"]') as HTMLInputElement;
-
-    const response = await fetch(
-      '/?phoneNumber=' + phoneNumber.value + '&countryCode=' + countryCode.value
-    );
-
-    if (!response.ok) {
-      const formTag = document.getElementById('phone-form') as HTMLDivElement;
-      formTag.style.display = 'none';
-      const failDiv = document.querySelector('.w-form-fail') as HTMLDivElement;
-      failDiv.style.display = 'block';
-    } else {
-      const formTag = document.getElementById('phone-form') as HTMLDivElement;
-      formTag.style.display = 'none';
-      const thanksDiv = document.querySelector('.w-form-done') as HTMLDivElement;
-      thanksDiv.style.display = 'block';
-    }
-  }
-
   originalArray.forEach(function (row: {
     idd: { root: string; suffixes: string[] };
     cca2: string;
@@ -340,11 +319,42 @@ window.Webflow.push(async () => {
     }
   });
 
+  async function submitButtonAction() {
+    const phoneNumber = document.querySelector('[name="phoneNumber"]') as HTMLInputElement;
+    const countryCode = document.querySelector('[name="countryCode"]') as HTMLInputElement;
+
+    const response = await fetch('https://webflow.com/api/v1/form/62966835cbd993826227621c', {
+      method: 'POST',
+      body:
+        'fields[Phone Number]=' +
+        phoneNumber.value +
+        '&fields[countryCode]=' +
+        countryCode.value +
+        '&name=Phone Form&dolphin=false&teste=false&source=https://secondchancefinsweet.webflow.io/',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+    });
+
+    if (!response.ok) {
+      const formTag = document.getElementById('phone-form') as HTMLDivElement;
+      formTag.style.display = 'none';
+      const failDiv = document.querySelector('.w-form-fail') as HTMLDivElement;
+      failDiv.style.display = 'block';
+    } else {
+      const formTag = document.getElementById('phone-form') as HTMLDivElement;
+      formTag.style.display = 'none';
+      const thanksDiv = document.querySelector('.w-form-done') as HTMLDivElement;
+      thanksDiv.style.display = 'block';
+    }
+  }
+
   const submitButton = document.querySelector('.button.w-button') as HTMLInputElement;
   submitButton.addEventListener('click', function (event) {
     event.preventDefault();
-    hideList();
-    this.value = this.getAttribute('data-wait') as string;
-    postPhoneForm();
+    const validForm = document.getElementById('phone-form') as HTMLFormElement;
+    if (validForm.reportValidity()) {
+      hideList();
+      this.value = this.getAttribute('data-wait') as string;
+      submitButtonAction();
+    }
   });
 });
