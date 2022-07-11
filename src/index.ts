@@ -7,91 +7,121 @@ window.Webflow.push(async () => {
   greetUser(name);
 
   const countries: Country[] = [];
-
-  const language = navigator.language.split('-');
-  let myCountry = {
-    cca2: language[1],
-    flag: '',
-    prefix: '',
-    name: '',
-  };
-
-  const originalArray = await getArrayCountries();
-  const ignore = ['US', 'PR', 'RU', 'EH', 'KZ', 'VA', 'DO', 'SH'];
-
   let arrowIndex = 1;
 
-  async function getArrayCountries() {
-    const jsonCoutries = await fetch(
-      'https://restcountries.com/v3.1/all?fields=name,cca2,idd,flags'
-    );
+  async function init() {
+    const originalArray = await getArrayCountries();
+    const ignore = ['US', 'PR', 'RU', 'EH', 'KZ', 'VA', 'DO', 'SH'];
+    const language = navigator.language.split('-');
+    let myCountry = {
+      cca2: language[1],
+      flag: '',
+      prefix: '',
+      name: '',
+    };
 
-    if (jsonCoutries.ok) {
-      return jsonCoutries.json();
+    async function getArrayCountries() {
+      const jsonCoutries = await fetch(
+        'https://restcountries.com/v3.1/all?fields=name,cca2,idd,flags'
+      );
+
+      if (jsonCoutries.ok) {
+        return jsonCoutries.json();
+      }
     }
-  }
 
-  function sortCountries(countries: Country[]) {
-    let sorted = false;
-    while (!sorted) {
-      sorted = true;
-      let index = 0;
-      countries.forEach(function () {
-        if (index > 0) {
-          if (countries[index - 1].cca2 > countries[index].cca2) {
-            const aux = countries[index];
-            countries[index] = countries[index - 1];
-            countries[index - 1] = aux;
-            sorted = false;
+    function sortCountries() {
+      let sorted = false;
+      while (!sorted) {
+        sorted = true;
+        let index = 0;
+        countries.forEach(function () {
+          if (index > 0) {
+            if (countries[index - 1].cca2 > countries[index].cca2) {
+              const aux = countries[index];
+              countries[index] = countries[index - 1];
+              countries[index - 1] = aux;
+              sorted = false;
+            }
           }
-        }
+          index = index + 1;
+        });
+      }
+    }
+
+    function appendAllOptions() {
+      let index = 0;
+
+      const listCountries = document.querySelector('.prefix-dropdown_list') as HTMLDivElement;
+
+      if (listCountries.firstElementChild) {
+        listCountries.removeChild(listCountries.firstElementChild);
+      }
+
+      countries.forEach((country) => {
+        const optionFlagImage = document.createElement('img');
+        optionFlagImage.src = country.flag;
+        optionFlagImage.setAttribute('data-element', 'flag');
+        optionFlagImage.setAttribute('loading', 'lazy');
+        optionFlagImage.setAttribute('alt', country.name);
+        optionFlagImage.className = 'prefix-dropdown_flag';
+
+        const optionDivPrefix = document.createElement('div');
+        optionDivPrefix.setAttribute('data-element', 'value');
+        optionDivPrefix.setAttribute('data-prefix', country.prefix);
+        optionDivPrefix.innerHTML = country.cca2;
+
+        const optionLink = document.createElement('a');
+        optionLink.setAttribute('data-element', 'item');
+        optionLink.setAttribute('aria-role', 'option');
+        optionLink.setAttribute('aria-selected', 'false');
+        optionLink.setAttribute('aria-label', country.name);
+        optionLink.setAttribute('title', country.name);
+        optionLink.setAttribute('data-index', String(index));
+        optionLink.setAttribute('id', 'div' + index);
+        optionLink.href = '#';
+        optionLink.className = 'prefix-dropdown_item w-inline-block';
+        optionLink.addEventListener('click', function (event) {
+          setOptionClick(event, this);
+        });
+
+        optionLink.appendChild(optionFlagImage);
+        optionLink.appendChild(optionDivPrefix);
+
+        listCountries.appendChild(optionLink);
+
         index = index + 1;
       });
     }
-  }
 
-  function appendAllOptions(countries: Country[]) {
-    let index = 0;
-
-    const listCountries = document.querySelector('.prefix-dropdown_list') as HTMLDivElement;
-
-    if (listCountries.firstElementChild) {
-      listCountries.removeChild(listCountries.firstElementChild);
-    }
-    countries.forEach((country) => {
-      const optionFlagImage = document.createElement('img');
-      optionFlagImage.src = country.flag;
-      optionFlagImage.setAttribute('data-element', 'flag');
-      optionFlagImage.setAttribute('loading', 'lazy');
-      optionFlagImage.setAttribute('alt', country.name);
-      optionFlagImage.className = 'prefix-dropdown_flag';
-
-      const optionDivPrefix = document.createElement('div');
-      optionDivPrefix.setAttribute('data-element', 'value');
-      optionDivPrefix.setAttribute('data-prefix', country.prefix);
-      optionDivPrefix.innerHTML = country.cca2;
-
-      const optionLink = document.createElement('a');
-      optionLink.setAttribute('data-element', 'item');
-      optionLink.setAttribute('aria-role', 'option');
-      optionLink.setAttribute('aria-selected', 'false');
-      optionLink.setAttribute('aria-label', country.name);
-      optionLink.setAttribute('title', country.name);
-      optionLink.setAttribute('data-index', String(index));
-      optionLink.setAttribute('id', 'div' + index);
-      optionLink.href = '#';
-      optionLink.className = 'prefix-dropdown_item w-inline-block';
-      optionLink.addEventListener('click', function (event) {
-        setOptionClick(event, this);
-      });
-
-      optionLink.appendChild(optionFlagImage);
-      optionLink.appendChild(optionDivPrefix);
-
-      listCountries.appendChild(optionLink);
-
-      index = index + 1;
+    originalArray.forEach(function (row: {
+      idd: { root: string; suffixes: string[] };
+      cca2: string;
+      flags: { svg: string };
+      name: { common: string };
+    }) {
+      let prefix = '';
+      if (row.idd.root) {
+        prefix += row.idd.root;
+        if (row.idd.suffixes[0] && !ignore.includes(row.cca2)) {
+          prefix += row.idd.suffixes[0];
+        }
+      }
+      const country = {
+        cca2: row.cca2,
+        flag: row.flags.svg,
+        prefix: prefix,
+        name: row.name.common,
+      };
+      countries.push(country);
+      if (myCountry.cca2 === country.cca2) {
+        myCountry = country;
+      }
     });
+
+    sortCountries();
+    appendAllOptions();
+    selectCountry(myCountry);
   }
 
   function setFocusOnCurrent() {
@@ -255,34 +285,7 @@ window.Webflow.push(async () => {
     }
   }
 
-  originalArray.forEach(function (row: {
-    idd: { root: string; suffixes: string[] };
-    cca2: string;
-    flags: { svg: string };
-    name: { common: string };
-  }) {
-    let prefix = '';
-    if (row.idd.root) {
-      prefix += row.idd.root;
-      if (row.idd.suffixes[0] && !ignore.includes(row.cca2)) {
-        prefix += row.idd.suffixes[0];
-      }
-    }
-    const country = {
-      cca2: row.cca2,
-      flag: row.flags.svg,
-      prefix: prefix,
-      name: row.name.common,
-    };
-    countries.push(country);
-    if (myCountry.cca2 === country.cca2) {
-      myCountry = country;
-    }
-  });
-
-  sortCountries(countries);
-  appendAllOptions(countries);
-  selectCountry(myCountry);
+  await init();
 
   const divToggle = document.querySelector('.prefix-dropdown_toggle') as HTMLDivElement;
   divToggle.setAttribute('tabindex', '1');
@@ -323,7 +326,7 @@ window.Webflow.push(async () => {
     const phoneNumber = document.querySelector('[name="phoneNumber"]') as HTMLInputElement;
     const countryCode = document.querySelector('[name="countryCode"]') as HTMLInputElement;
 
-    const response = await fetch('https://webflow.com/api/v1/form/62966835cbd993826227621c', {
+    const response = await fetch('https://webflow.com/api/v1/form/6273d3f75ac01db3e57995c8', {
       method: 'POST',
       body:
         'fields[Phone Number]=' +
