@@ -1,5 +1,5 @@
 export interface Country {
-  cca2: string;
+  code: string;
   flag: string;
   prefix: string;
   name: string;

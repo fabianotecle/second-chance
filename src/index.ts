@@ -6,95 +6,17 @@ window.Webflow.push(async () => {
   const name = 'Fabiano Alves';
   greetUser(name);
 
-  const countries: Country[] = [];
-  let arrowIndex = 1;
+  const COUNTRIES: Country[] = [];
+  const DIV_HEIGHT_AJUST = 2.2;
 
-  async function init() {
-    const originalArray = await getArrayCountries();
-    const ignore = ['US', 'PR', 'RU', 'EH', 'KZ', 'VA', 'DO', 'SH'];
-    const language = navigator.language.split('-');
-    let myCountry = {
-      cca2: language[1],
-      flag: '',
-      prefix: '',
-      name: '',
-    };
+  const USER_BROWSER_INFORMATION = navigator.language.split('-');
+  const USER_COUNTRY_CODE_INDEX = 1;
+  const USER_COUNTRY_CODE = USER_BROWSER_INFORMATION[USER_COUNTRY_CODE_INDEX];
 
-    async function getArrayCountries() {
-      const jsonCoutries = await fetch(
-        'https://restcountries.com/v3.1/all?fields=name,cca2,idd,flags'
-      );
-
-      if (jsonCoutries.ok) {
-        return jsonCoutries.json();
-      }
-    }
-
-    function sortCountries() {
-      let sorted = false;
-      while (!sorted) {
-        sorted = true;
-        let index = 0;
-        countries.forEach(function () {
-          if (index > 0) {
-            if (countries[index - 1].cca2 > countries[index].cca2) {
-              const aux = countries[index];
-              countries[index] = countries[index - 1];
-              countries[index - 1] = aux;
-              sorted = false;
-            }
-          }
-          index = index + 1;
-        });
-      }
-    }
-
-    function appendAllOptions() {
-      let index = 0;
-
-      const listCountries = document.querySelector('.prefix-dropdown_list') as HTMLDivElement;
-
-      if (listCountries.firstElementChild) {
-        listCountries.removeChild(listCountries.firstElementChild);
-      }
-
-      countries.forEach((country) => {
-        const optionFlagImage = document.createElement('img');
-        optionFlagImage.src = country.flag;
-        optionFlagImage.setAttribute('data-element', 'flag');
-        optionFlagImage.setAttribute('loading', 'lazy');
-        optionFlagImage.setAttribute('alt', country.name);
-        optionFlagImage.className = 'prefix-dropdown_flag';
-
-        const optionDivPrefix = document.createElement('div');
-        optionDivPrefix.setAttribute('data-element', 'value');
-        optionDivPrefix.setAttribute('data-prefix', country.prefix);
-        optionDivPrefix.innerHTML = country.cca2;
-
-        const optionLink = document.createElement('a');
-        optionLink.setAttribute('data-element', 'item');
-        optionLink.setAttribute('aria-role', 'option');
-        optionLink.setAttribute('aria-selected', 'false');
-        optionLink.setAttribute('aria-label', country.name);
-        optionLink.setAttribute('title', country.name);
-        optionLink.setAttribute('data-index', String(index));
-        optionLink.setAttribute('id', 'div' + index);
-        optionLink.href = '#';
-        optionLink.className = 'prefix-dropdown_item w-inline-block';
-        optionLink.addEventListener('click', function (event) {
-          setOptionClick(event, this);
-        });
-
-        optionLink.appendChild(optionFlagImage);
-        optionLink.appendChild(optionDivPrefix);
-
-        listCountries.appendChild(optionLink);
-
-        index = index + 1;
-      });
-    }
-
-    originalArray.forEach(function (row: {
+  async function setCountryArray() {
+    const COUNTRIES_FROM_WEBSERVICE = await getCountriesFromWebservice();
+    const COUNTRIES_WITHOUT_SUFIX = ['US', 'PR', 'RU', 'EH', 'KZ', 'VA', 'DO', 'SH'];
+    COUNTRIES_FROM_WEBSERVICE.forEach(function (row: {
       idd: { root: string; suffixes: string[] };
       cca2: string;
       flags: { svg: string };
@@ -103,200 +25,314 @@ window.Webflow.push(async () => {
       let prefix = '';
       if (row.idd.root) {
         prefix += row.idd.root;
-        if (row.idd.suffixes[0] && !ignore.includes(row.cca2)) {
+        if (row.idd.suffixes[0] && !COUNTRIES_WITHOUT_SUFIX.includes(row.cca2)) {
           prefix += row.idd.suffixes[0];
         }
       }
-      const country = {
-        cca2: row.cca2,
+      const COUNTRY = {
+        code: row.cca2,
         flag: row.flags.svg,
         prefix: prefix,
         name: row.name.common,
       };
-      countries.push(country);
-      if (myCountry.cca2 === country.cca2) {
-        myCountry = country;
-      }
+      COUNTRIES.push(COUNTRY);
     });
-
-    sortCountries();
-    appendAllOptions();
-    selectCountry(myCountry);
   }
 
-  function setFocusOnCurrent() {
-    const selected = document.querySelector('.w--current') as HTMLDivElement;
-    if (selected) {
-      if (selected.offsetTop !== 0) {
-        const list = document.querySelector('.prefix-dropdown_list') as HTMLDivElement;
-        list.scrollTop = selected.offsetTop - list.clientHeight / 2.2; // Constants are where the secrets of universe are hidden
-      }
-      const dataIndex = selected.getAttribute('data-index') as string;
-      arrowIndex = parseInt(dataIndex);
+  async function getCountriesFromWebservice() {
+    const JSON_COUNTRIES = await fetch(
+      'https://restcountries.com/v3.1/all?fields=name,cca2,idd,flags'
+    );
+
+    if (JSON_COUNTRIES.ok) {
+      return JSON_COUNTRIES.json();
     }
   }
 
-  function toggleList() {
-    const infoSelected = document.querySelector('.prefix-dropdown_component') as HTMLDivElement;
-    if (!infoSelected.classList.contains('open')) {
-      infoSelected.classList.add('open');
-      const list = document.querySelector('.prefix-dropdown_list-wrapper') as HTMLDivElement;
-      list.style.transition = 'all 0.075s linear';
-      list.style.display = 'block';
-      const arrow = document.querySelector('.prefix-dropdown_chevron') as HTMLDivElement;
-      arrow.style.transition = 'all 0.075s linear';
-      arrow.style.transform = 'rotate(180deg)';
-    } else {
-      hideList();
-    }
-    setFocusOnCurrent();
-  }
-
-  function hideList() {
-    const infoSelected = document.querySelector('.prefix-dropdown_component') as HTMLDivElement;
-    if (infoSelected.classList.contains('open')) {
-      infoSelected.classList.remove('open');
-      const list = document.querySelector('.prefix-dropdown_list-wrapper') as HTMLDivElement;
-      list.style.transition = 'all 0.075s linear';
-      list.style.display = 'none';
-      const arrow = document.querySelector('.prefix-dropdown_chevron') as HTMLDivElement;
-      arrow.style.transition = 'all 0.075s linear';
-      arrow.style.transform = 'rotate(0deg)';
-      document.querySelectorAll('.prefix-dropdown_item').forEach(function (option) {
-        option.classList.remove('arrowSelected');
+  function sortCountriesArray() {
+    let sorted = false;
+    while (!sorted) {
+      sorted = true;
+      let index = 0;
+      COUNTRIES.forEach(function () {
+        if (index > 0) {
+          if (COUNTRIES[index - 1].code > COUNTRIES[index].code) {
+            const PLACEHOLDER = COUNTRIES[index];
+            COUNTRIES[index] = COUNTRIES[index - 1];
+            COUNTRIES[index - 1] = PLACEHOLDER;
+            sorted = false;
+          }
+        }
+        index = index + 1;
       });
     }
   }
 
+  function appendAllCountryOptionsToDivList() {
+    let index = 0;
+
+    const COUNTRIES_LIST = document.querySelector('.prefix-dropdown_list') as HTMLDivElement;
+
+    if (COUNTRIES_LIST.firstElementChild) {
+      COUNTRIES_LIST.removeChild(COUNTRIES_LIST.firstElementChild);
+    }
+
+    COUNTRIES.forEach((country) => {
+      const OPTION_FLAG_IMAGE = document.createElement('img');
+      OPTION_FLAG_IMAGE.src = country.flag;
+      OPTION_FLAG_IMAGE.setAttribute('data-element', 'flag');
+      OPTION_FLAG_IMAGE.setAttribute('loading', 'lazy');
+      OPTION_FLAG_IMAGE.setAttribute('alt', country.name);
+      OPTION_FLAG_IMAGE.className = 'prefix-dropdown_flag';
+
+      const OPTION_DIV_PREFIX = document.createElement('div');
+      OPTION_DIV_PREFIX.setAttribute('data-element', 'value');
+      OPTION_DIV_PREFIX.setAttribute('data-prefix', country.prefix);
+      OPTION_DIV_PREFIX.innerHTML = country.code;
+
+      const OPTION_LINK = document.createElement('a');
+      OPTION_LINK.setAttribute('data-element', 'item');
+      OPTION_LINK.setAttribute('aria-role', 'option');
+      OPTION_LINK.setAttribute('aria-selected', 'false');
+      OPTION_LINK.setAttribute('aria-label', country.name);
+      OPTION_LINK.setAttribute('title', country.name);
+      OPTION_LINK.setAttribute('data-index', String(index));
+      OPTION_LINK.setAttribute('id', 'div' + index);
+      OPTION_LINK.href = '#';
+      OPTION_LINK.className = 'prefix-dropdown_item w-inline-block';
+      OPTION_LINK.addEventListener('click', function (event) {
+        setOptionByClick(event, this as unknown as HTMLLinkElement);
+      });
+
+      OPTION_LINK.appendChild(OPTION_FLAG_IMAGE);
+      OPTION_LINK.appendChild(OPTION_DIV_PREFIX);
+
+      COUNTRIES_LIST.appendChild(OPTION_LINK);
+
+      index = index + 1;
+    });
+  }
+
+  function setFocusOnCurrentCountry() {
+    const CURRENT_COUNTRY = document.querySelector('.w--current') as HTMLDivElement;
+    if (CURRENT_COUNTRY) {
+      if (CURRENT_COUNTRY.offsetTop !== 0) {
+        const COUNTRIES_LIST = document.querySelector('.prefix-dropdown_list') as HTMLDivElement;
+        COUNTRIES_LIST.scrollTop =
+          CURRENT_COUNTRY.offsetTop - COUNTRIES_LIST.clientHeight / DIV_HEIGHT_AJUST;
+      }
+      const CURRENT_INDEX = CURRENT_COUNTRY.getAttribute('data-index') as string;
+      arrowIndex = parseInt(CURRENT_INDEX);
+    }
+  }
+
+  function toggleList() {
+    const DROP_DOWN_SELECTED_INFORMATION = document.querySelector(
+      '.prefix-dropdown_component'
+    ) as HTMLDivElement;
+    if (!DROP_DOWN_SELECTED_INFORMATION.classList.contains('open')) {
+      DROP_DOWN_SELECTED_INFORMATION.classList.add('open');
+      const DROP_DOWN_LIST = document.querySelector(
+        '.prefix-dropdown_list-wrapper'
+      ) as HTMLDivElement;
+      DROP_DOWN_LIST.style.transition = 'all 0.075s linear';
+      DROP_DOWN_LIST.style.display = 'block';
+      const OPEN_CLOSE_ARROW = document.querySelector('.prefix-dropdown_chevron') as HTMLDivElement;
+      OPEN_CLOSE_ARROW.style.transition = 'all 0.075s linear';
+      OPEN_CLOSE_ARROW.style.transform = 'rotate(180deg)';
+    } else {
+      hideList();
+    }
+    setFocusOnCurrentCountry();
+  }
+
+  function hideList() {
+    const DROP_DOWN_SELECTED_INFORMATION = document.querySelector(
+      '.prefix-dropdown_component'
+    ) as HTMLDivElement;
+    if (DROP_DOWN_SELECTED_INFORMATION.classList.contains('open')) {
+      DROP_DOWN_SELECTED_INFORMATION.classList.remove('open');
+      const DROP_DOWN_LIST = document.querySelector(
+        '.prefix-dropdown_list-wrapper'
+      ) as HTMLDivElement;
+      DROP_DOWN_LIST.style.transition = 'all 0.075s linear';
+      DROP_DOWN_LIST.style.display = 'none';
+      const OPEN_CLOSE_ARROW = document.querySelector('.prefix-dropdown_chevron') as HTMLDivElement;
+      OPEN_CLOSE_ARROW.style.transition = 'all 0.075s linear';
+      OPEN_CLOSE_ARROW.style.transform = 'rotate(0deg)';
+      deselectAll();
+    }
+  }
+
   function selectCountry(country: Country) {
-    const inputCountryCode = document.querySelector('input[name=countryCode]') as HTMLInputElement;
-    inputCountryCode.value = country.prefix;
+    const COUNTRY_CODE_INPUT = document.querySelector(
+      'input[name=countryCode]'
+    ) as HTMLInputElement;
+    COUNTRY_CODE_INPUT.value = country.prefix;
 
-    const selectedOption = document.querySelector('.prefix-dropdown_toggle') as HTMLElement;
-    const optionLink = selectedOption.childNodes[0] as HTMLImageElement;
-    optionLink.src = country.flag;
-    optionLink.alt = country.name + ' Flag';
-    const optionPrefix = selectedOption.childNodes[2] as HTMLDivElement;
-    optionPrefix.innerHTML = country.prefix;
+    const DIV_SELECTED_INFORMATION = document.querySelector(
+      '.prefix-dropdown_toggle'
+    ) as HTMLElement;
+    const OPTION_LINK = DIV_SELECTED_INFORMATION.childNodes[0] as HTMLImageElement;
+    OPTION_LINK.src = country.flag;
+    OPTION_LINK.alt = country.name + ' Flag';
+    const OPTION_PREFIX = DIV_SELECTED_INFORMATION.childNodes[2] as HTMLDivElement;
+    OPTION_PREFIX.innerHTML = country.prefix;
 
-    const options: NodeListOf<HTMLLinkElement> = document.querySelectorAll('.prefix-dropdown_item');
-    options.forEach((option) => {
-      if (option.title !== country.name) {
-        option.classList.remove('w--current');
+    document.querySelectorAll('.prefix-dropdown_item').forEach(function (option) {
+      const LINK_SELECTED_COUNTRY = option as HTMLLinkElement;
+      if (LINK_SELECTED_COUNTRY.title !== country.name) {
+        LINK_SELECTED_COUNTRY.classList.remove('w--current');
       } else {
-        option.classList.add('w--current');
-        arrowIndex = parseInt(option.getAttribute('data-index') as string);
+        LINK_SELECTED_COUNTRY.classList.add('w--current');
+        arrowIndex = parseInt(LINK_SELECTED_COUNTRY.getAttribute('data-index') as string);
       }
     });
   }
 
-  function setOptionClick(event: MouseEvent, divClicked: HTMLElement) {
+  function selectUserCountry() {
+    let index = 0;
+    let found = 0;
+    let link_country_option = document.getElementById('div' + index) as HTMLLinkElement;
+    while (link_country_option && !found) {
+      const DIV_TO_COMPARE = link_country_option.childNodes[1] as HTMLDivElement;
+      if (USER_COUNTRY_CODE === DIV_TO_COMPARE.innerHTML) {
+        deselectAll();
+        const COUNTRY_FOUND = setCountryVariable(link_country_option);
+        selectCountry(COUNTRY_FOUND);
+        found = 1;
+      }
+      index = index + 1;
+      link_country_option = document.getElementById('div' + index) as HTMLLinkElement;
+    }
+  }
+
+  function setOptionByClick(event: MouseEvent, linkClicked: HTMLLinkElement) {
     event.preventDefault();
-    const divPrefix = divClicked.childNodes[1] as HTMLDivElement;
-    const imgFlag = divClicked.childNodes[0] as HTMLImageElement;
-    const country = {
-      cca2: divPrefix.innerHTML,
-      prefix: divPrefix.getAttribute('data-prefix') as string,
-      flag: imgFlag.src,
-      name: divClicked.title,
-    };
-    selectCountry(country);
+    const COUNTRY_SELECTED = setCountryVariable(linkClicked);
+    selectCountry(COUNTRY_SELECTED);
     toggleList();
   }
 
   function setByEnterOrSpace(event: Event) {
     if (document.activeElement === document.querySelector('.prefix-dropdown_toggle')) {
       event.preventDefault();
-      const dropDown = document.querySelector('.prefix-dropdown_component') as HTMLDivElement;
-      if (dropDown.classList.contains('open')) {
-        const current = document.querySelector('.w--current');
-        const selected = document.getElementById('div' + arrowIndex) as HTMLDivElement;
-        if (current && selected && current !== selected) {
-          const divSelected = selected.childNodes[1] as HTMLDivElement;
-          const imgSelected = selected.childNodes[0] as HTMLImageElement;
-          const country: Country = {
-            cca2: divSelected.innerHTML,
-            flag: imgSelected.src,
-            prefix: divSelected.getAttribute('data-prefix') as string,
-            name: selected.getAttribute('title') as string,
-          };
-          selectCountry(country);
+      const DROP_DOWN_SELECTED_INFORMATION = document.querySelector(
+        '.prefix-dropdown_component'
+      ) as HTMLDivElement;
+      if (DROP_DOWN_SELECTED_INFORMATION.classList.contains('open')) {
+        const CURRENT_COUNTRY = document.querySelector('.w--current');
+        const COUNTRY_SELECTED = document.getElementById('div' + arrowIndex) as HTMLLinkElement;
+        if (CURRENT_COUNTRY && COUNTRY_SELECTED && CURRENT_COUNTRY !== COUNTRY_SELECTED) {
+          const COUNTRY = setCountryVariable(COUNTRY_SELECTED);
+          selectCountry(COUNTRY);
         }
       }
     }
     toggleList();
   }
 
+  function setCountryVariable(divLink: HTMLLinkElement) {
+    const PREFIX_DIV = divLink.childNodes[1] as HTMLDivElement;
+    const FLAG_IMG = divLink.childNodes[0] as HTMLImageElement;
+    const COUNTRY = {
+      code: PREFIX_DIV.innerHTML,
+      prefix: PREFIX_DIV.getAttribute('data-prefix') as string,
+      flag: FLAG_IMG.src,
+      name: divLink.title,
+    };
+    return COUNTRY;
+  }
+
   function focusOnTypedLetter(event: KeyboardEvent) {
-    const key = event.key as string;
-    const infoSelected = document.querySelector('.prefix-dropdown_component') as HTMLDivElement;
-    if (infoSelected.classList.contains('open')) {
-      if (key.length === 1 && key.match(/[a-z]/i)) {
-        const letter = key.toUpperCase();
+    const KEY_TYPED = event.key as string;
+    const DROP_DOWN_SELECTED_INFORMATION = document.querySelector(
+      '.prefix-dropdown_component'
+    ) as HTMLDivElement;
+    if (DROP_DOWN_SELECTED_INFORMATION.classList.contains('open')) {
+      if (KEY_TYPED.length === 1 && KEY_TYPED.match(/[a-z]/i)) {
+        const LETTER_TYPED = KEY_TYPED.toUpperCase();
         let index = 0;
         let found = 0;
-        let country = document.getElementById('div' + index);
-        while (country && !found) {
-          const divLetter = country.childNodes[1] as HTMLDivElement;
-          if (letter === divLetter.innerHTML.charAt(0)) {
+        let link_country_option = document.getElementById('div' + index);
+        while (link_country_option && !found) {
+          const DIV_TO_COMPARE = link_country_option.childNodes[1] as HTMLDivElement;
+          if (LETTER_TYPED === DIV_TO_COMPARE.innerHTML.charAt(0)) {
             arrowIndex = index;
-            const list = document.querySelector('.prefix-dropdown_list') as HTMLDivElement;
-            list.scrollTop = country.offsetTop - list.clientHeight / 2.2; // Constants are where the secrets of universe are hidden
-            document.querySelectorAll('.prefix-dropdown_item').forEach(function (option) {
-              option.classList.remove('arrowSelected');
-            });
-            country.classList.add('arrowSelected');
+            const COUNTRIES_LIST = document.querySelector(
+              '.prefix-dropdown_list'
+            ) as HTMLDivElement;
+            COUNTRIES_LIST.scrollTop =
+              link_country_option.offsetTop - COUNTRIES_LIST.clientHeight / DIV_HEIGHT_AJUST;
+            deselectAll();
+            link_country_option.classList.add('arrowSelected');
             found = 1;
           }
           index = index + 1;
-          country = document.getElementById('div' + index);
+          link_country_option = document.getElementById('div' + index);
         }
       }
     }
   }
 
   function arrowSelectCountry(direction: string, event: Event) {
-    const infoSelected = document.querySelector('.prefix-dropdown_component') as HTMLDivElement;
-    if (infoSelected.classList.contains('open')) {
+    const DROP_DOWN_SELECTED_INFORMATION = document.querySelector(
+      '.prefix-dropdown_component'
+    ) as HTMLDivElement;
+    if (DROP_DOWN_SELECTED_INFORMATION.classList.contains('open')) {
       event.preventDefault();
       if (direction === 'up') {
-        const selected = document.getElementById('div' + (arrowIndex - 1));
-        if (selected) {
+        const COUNTRY_SELECTED = document.getElementById(
+          'div' + (arrowIndex - 1)
+        ) as HTMLDivElement;
+        if (COUNTRY_SELECTED) {
           arrowIndex = arrowIndex - 1;
-          document.querySelectorAll('.prefix-dropdown_item').forEach(function (option) {
-            option.classList.remove('arrowSelected');
-          });
-          const list = document.querySelector('.prefix-dropdown_list') as HTMLDivElement;
-          list.scrollTop = selected.offsetTop - list.clientHeight / 2.2; // Constants are where the secrets of universe are hidden
-          selected.classList.add('arrowSelected');
+          deselectAll();
+          setCountrySeleted(COUNTRY_SELECTED);
         }
       } else {
-        const selected = document.getElementById('div' + (arrowIndex + 1));
-        if (selected) {
+        const COUNTRY_SELECTED = document.getElementById(
+          'div' + (arrowIndex + 1)
+        ) as HTMLDivElement;
+        if (COUNTRY_SELECTED) {
           arrowIndex = arrowIndex + 1;
-          document.querySelectorAll('.prefix-dropdown_item').forEach(function (option) {
-            option.classList.remove('arrowSelected');
-          });
-          const list = document.querySelector('.prefix-dropdown_list') as HTMLDivElement;
-          list.scrollTop = selected.offsetTop - list.clientHeight / 2.2; // Constants are where the secrets of universe are hidden
-          selected.classList.add('arrowSelected');
+          deselectAll();
+          setCountrySeleted(COUNTRY_SELECTED);
         }
       }
     }
   }
 
-  await init();
+  function deselectAll() {
+    document.querySelectorAll('.prefix-dropdown_item').forEach(function (option) {
+      option.classList.remove('arrowSelected');
+    });
+  }
 
-  const divToggle = document.querySelector('.prefix-dropdown_toggle') as HTMLDivElement;
-  divToggle.setAttribute('tabindex', '1');
+  function setCountrySeleted(country_selected: HTMLDivElement) {
+    const COUNTRIES_LIST = document.querySelector('.prefix-dropdown_list') as HTMLDivElement;
+    COUNTRIES_LIST.scrollTop =
+      country_selected.offsetTop - COUNTRIES_LIST.clientHeight / DIV_HEIGHT_AJUST;
+    country_selected.classList.add('arrowSelected');
+  }
+
+  let arrowIndex = 1;
+
+  await setCountryArray();
+  sortCountriesArray();
+  appendAllCountryOptionsToDivList();
+  selectUserCountry();
+
+  const DIV_DROP_DOWN_LIST = document.querySelector('.prefix-dropdown_toggle') as HTMLDivElement;
+  DIV_DROP_DOWN_LIST.setAttribute('tabindex', '1');
   const fieldInput = document.querySelector('.text-field.w-input') as HTMLInputElement;
   fieldInput.setAttribute('tabindex', '2');
 
-  divToggle.addEventListener('click', function () {
+  DIV_DROP_DOWN_LIST.addEventListener('click', function () {
     toggleList();
   });
 
-  divToggle.addEventListener('keydown', function (event: KeyboardEvent) {
+  DIV_DROP_DOWN_LIST.addEventListener('keydown', function (event: KeyboardEvent) {
     switch (event.key) {
       case 'ArrowDown':
         arrowSelectCountry('down', event);
@@ -323,38 +359,38 @@ window.Webflow.push(async () => {
   });
 
   async function submitButtonAction() {
-    const phoneNumber = document.querySelector('[name="phoneNumber"]') as HTMLInputElement;
-    const countryCode = document.querySelector('[name="countryCode"]') as HTMLInputElement;
+    const PHONE_NUMBER = document.querySelector('[name="phoneNumber"]') as HTMLInputElement;
+    const COUNTRY_CODE = document.querySelector('[name="countryCode"]') as HTMLInputElement;
 
     const response = await fetch('https://webflow.com/api/v1/form/6273d3f75ac01db3e57995c8', {
       method: 'POST',
       body:
         'fields[Phone Number]=' +
-        phoneNumber.value +
+        PHONE_NUMBER.value +
         '&fields[countryCode]=' +
-        countryCode.value +
+        COUNTRY_CODE.value +
         '&name=Phone Form&dolphin=false&teste=false&source=https://secondchancefinsweet.webflow.io/',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
     });
 
     if (!response.ok) {
-      const formTag = document.getElementById('phone-form') as HTMLDivElement;
-      formTag.style.display = 'none';
-      const failDiv = document.querySelector('.w-form-fail') as HTMLDivElement;
-      failDiv.style.display = 'block';
+      const FORM_DIV = document.getElementById('phone-form') as HTMLDivElement;
+      FORM_DIV.style.display = 'none';
+      const FAIL_DIV = document.querySelector('.w-form-fail') as HTMLDivElement;
+      FAIL_DIV.style.display = 'block';
     } else {
-      const formTag = document.getElementById('phone-form') as HTMLDivElement;
-      formTag.style.display = 'none';
-      const thanksDiv = document.querySelector('.w-form-done') as HTMLDivElement;
-      thanksDiv.style.display = 'block';
+      const FORM_DIV = document.getElementById('phone-form') as HTMLDivElement;
+      FORM_DIV.style.display = 'none';
+      const THANKS_DIV = document.querySelector('.w-form-done') as HTMLDivElement;
+      THANKS_DIV.style.display = 'block';
     }
   }
 
-  const submitButton = document.querySelector('.button.w-button') as HTMLInputElement;
-  submitButton.addEventListener('click', function (event) {
+  const SUBMIT_BUTTON = document.querySelector('.button.w-button') as HTMLInputElement;
+  SUBMIT_BUTTON.addEventListener('click', function (event) {
     event.preventDefault();
-    const validForm = document.getElementById('phone-form') as HTMLFormElement;
-    if (validForm.reportValidity()) {
+    const FORM_ELEMENT = document.getElementById('phone-form') as HTMLFormElement;
+    if (FORM_ELEMENT.reportValidity()) {
       hideList();
       this.value = this.getAttribute('data-wait') as string;
       submitButtonAction();
