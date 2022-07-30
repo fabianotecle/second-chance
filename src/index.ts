@@ -6,46 +6,42 @@ window.Webflow.push(async () => {
   const name = 'Fabiano Alves';
   greetUser(name);
 
-  const COUNTRIES: Country[] = [];
-  const DIV_HEIGHT_AJUST = 2.2;
-
-  const USER_BROWSER_INFORMATION = navigator.language.split('-');
-  const USER_COUNTRY_CODE_INDEX = 1;
-  const USER_COUNTRY_CODE = USER_BROWSER_INFORMATION[USER_COUNTRY_CODE_INDEX];
+  const countries: Country[] = [];
 
   async function setCountryArray() {
-    const COUNTRIES_FROM_WEBSERVICE = await getCountriesFromWebservice();
-    const COUNTRIES_WITHOUT_SUFIX = ['US', 'PR', 'RU', 'EH', 'KZ', 'VA', 'DO', 'SH'];
-    COUNTRIES_FROM_WEBSERVICE.forEach(function (row: {
+    const countriesFromWebservice = await getCountriesFromWebservice();
+    const countriesWithoutPhoneSufix = ['US', 'PR', 'RU', 'EH', 'KZ', 'VA', 'DO', 'SH'];
+    countriesFromWebservice.forEach(function (row: {
       idd: { root: string; suffixes: string[] };
       cca2: string;
       flags: { svg: string };
       name: { common: string };
     }) {
-      let prefix = '';
-      if (row.idd.root) {
-        prefix += row.idd.root;
-        if (row.idd.suffixes[0] && !COUNTRIES_WITHOUT_SUFIX.includes(row.cca2)) {
-          prefix += row.idd.suffixes[0];
+      let prefix = row.idd.root;
+      const rowCountryCode = row.cca2;
+      if (prefix) {
+        const sufix = row.idd.suffixes[0];
+        if (sufix && !countriesWithoutPhoneSufix.includes(rowCountryCode)) {
+          prefix += sufix;
         }
       }
-      const COUNTRY = {
-        code: row.cca2,
+      const country = {
+        code: rowCountryCode,
         flag: row.flags.svg,
         prefix: prefix,
         name: row.name.common,
       };
-      COUNTRIES.push(COUNTRY);
+      countries.push(country);
     });
   }
 
   async function getCountriesFromWebservice() {
-    const JSON_COUNTRIES = await fetch(
+    const jsonCountriesFromWebservice = await fetch(
       'https://restcountries.com/v3.1/all?fields=name,cca2,idd,flags'
     );
 
-    if (JSON_COUNTRIES.ok) {
-      return JSON_COUNTRIES.json();
+    if (jsonCountriesFromWebservice.ok) {
+      return jsonCountriesFromWebservice.json();
     }
   }
 
@@ -54,12 +50,13 @@ window.Webflow.push(async () => {
     while (!sorted) {
       sorted = true;
       let index = 0;
-      COUNTRIES.forEach(function () {
+      countries.forEach(function () {
         if (index > 0) {
-          if (COUNTRIES[index - 1].code > COUNTRIES[index].code) {
-            const PLACEHOLDER = COUNTRIES[index];
-            COUNTRIES[index] = COUNTRIES[index - 1];
-            COUNTRIES[index - 1] = PLACEHOLDER;
+          const previousIndex = index - 1;
+          if (countries[previousIndex].code > countries[index].code) {
+            const placeholder = countries[index];
+            countries[index] = countries[previousIndex];
+            countries[previousIndex] = placeholder;
             sorted = false;
           }
         }
@@ -68,126 +65,101 @@ window.Webflow.push(async () => {
     }
   }
 
-  function appendAllCountryOptionsToDivList() {
+  await setCountryArray();
+  sortCountriesArray();
+
+  function clearDivCountryList() {
+    const divCountryList = document.querySelector('.prefix-dropdown_list') as HTMLDivElement;
+    if (divCountryList.firstElementChild) {
+      divCountryList.removeChild(divCountryList.firstElementChild);
+    }
+  }
+
+  function appendAllCountryOptionsToDivCountryList() {
     let index = 0;
 
-    const COUNTRIES_LIST = document.querySelector('.prefix-dropdown_list') as HTMLDivElement;
+    const divCountryList = document.querySelector('.prefix-dropdown_list') as HTMLDivElement;
 
-    if (COUNTRIES_LIST.firstElementChild) {
-      COUNTRIES_LIST.removeChild(COUNTRIES_LIST.firstElementChild);
-    }
+    countries.forEach((country) => {
+      const optionFlagImage = setFlagImageTag(country);
+      const optionDivPrefix = setOptionDivPrefix(country);
+      const optionLink = setOptionLinkTag(country, index);
 
-    COUNTRIES.forEach((country) => {
-      const OPTION_FLAG_IMAGE = document.createElement('img');
-      OPTION_FLAG_IMAGE.src = country.flag;
-      OPTION_FLAG_IMAGE.setAttribute('data-element', 'flag');
-      OPTION_FLAG_IMAGE.setAttribute('loading', 'lazy');
-      OPTION_FLAG_IMAGE.setAttribute('alt', country.name);
-      OPTION_FLAG_IMAGE.className = 'prefix-dropdown_flag';
+      optionLink.appendChild(optionFlagImage);
+      optionLink.appendChild(optionDivPrefix);
 
-      const OPTION_DIV_PREFIX = document.createElement('div');
-      OPTION_DIV_PREFIX.setAttribute('data-element', 'value');
-      OPTION_DIV_PREFIX.setAttribute('data-prefix', country.prefix);
-      OPTION_DIV_PREFIX.innerHTML = country.code;
-
-      const OPTION_LINK = document.createElement('a');
-      OPTION_LINK.setAttribute('data-element', 'item');
-      OPTION_LINK.setAttribute('aria-role', 'option');
-      OPTION_LINK.setAttribute('aria-selected', 'false');
-      OPTION_LINK.setAttribute('aria-label', country.name);
-      OPTION_LINK.setAttribute('title', country.name);
-      OPTION_LINK.setAttribute('data-index', String(index));
-      OPTION_LINK.setAttribute('id', 'div' + index);
-      OPTION_LINK.href = '#';
-      OPTION_LINK.className = 'prefix-dropdown_item w-inline-block';
-      OPTION_LINK.addEventListener('click', function (event) {
-        setOptionByClick(event, this as unknown as HTMLLinkElement);
-      });
-
-      OPTION_LINK.appendChild(OPTION_FLAG_IMAGE);
-      OPTION_LINK.appendChild(OPTION_DIV_PREFIX);
-
-      COUNTRIES_LIST.appendChild(OPTION_LINK);
+      divCountryList.appendChild(optionLink);
 
       index = index + 1;
     });
   }
 
-  function setFocusOnCurrentCountry() {
-    const CURRENT_COUNTRY = document.querySelector('.w--current') as HTMLDivElement;
-    if (CURRENT_COUNTRY) {
-      if (CURRENT_COUNTRY.offsetTop !== 0) {
-        const COUNTRIES_LIST = document.querySelector('.prefix-dropdown_list') as HTMLDivElement;
-        COUNTRIES_LIST.scrollTop =
-          CURRENT_COUNTRY.offsetTop - COUNTRIES_LIST.clientHeight / DIV_HEIGHT_AJUST;
-      }
-      const CURRENT_INDEX = CURRENT_COUNTRY.getAttribute('data-index') as string;
-      arrowIndex = parseInt(CURRENT_INDEX);
-    }
+  function setFlagImageTag(country: Country) {
+    const optionFlagImage = document.createElement('img');
+    optionFlagImage.src = country.flag;
+    optionFlagImage.setAttribute('data-element', 'flag');
+    optionFlagImage.setAttribute('loading', 'lazy');
+    optionFlagImage.setAttribute('alt', country.name);
+    optionFlagImage.className = 'prefix-dropdown_flag';
+    return optionFlagImage;
   }
 
-  function toggleList() {
-    const DROP_DOWN_SELECTED_INFORMATION = document.querySelector(
-      '.prefix-dropdown_component'
-    ) as HTMLDivElement;
-    if (!DROP_DOWN_SELECTED_INFORMATION.classList.contains('open')) {
-      DROP_DOWN_SELECTED_INFORMATION.classList.add('open');
-      const DROP_DOWN_LIST = document.querySelector(
-        '.prefix-dropdown_list-wrapper'
-      ) as HTMLDivElement;
-      DROP_DOWN_LIST.style.transition = 'all 0.075s linear';
-      DROP_DOWN_LIST.style.display = 'block';
-      const OPEN_CLOSE_ARROW = document.querySelector('.prefix-dropdown_chevron') as HTMLDivElement;
-      OPEN_CLOSE_ARROW.style.transition = 'all 0.075s linear';
-      OPEN_CLOSE_ARROW.style.transform = 'rotate(180deg)';
-    } else {
-      hideList();
-    }
-    setFocusOnCurrentCountry();
+  function setOptionDivPrefix(country: Country) {
+    const optionDivPrefix = document.createElement('div');
+    optionDivPrefix.setAttribute('data-element', 'value');
+    optionDivPrefix.setAttribute('data-prefix', country.prefix);
+    optionDivPrefix.innerHTML = country.code;
+    return optionDivPrefix;
   }
 
-  function hideList() {
-    const DROP_DOWN_SELECTED_INFORMATION = document.querySelector(
-      '.prefix-dropdown_component'
-    ) as HTMLDivElement;
-    if (DROP_DOWN_SELECTED_INFORMATION.classList.contains('open')) {
-      DROP_DOWN_SELECTED_INFORMATION.classList.remove('open');
-      const DROP_DOWN_LIST = document.querySelector(
-        '.prefix-dropdown_list-wrapper'
-      ) as HTMLDivElement;
-      DROP_DOWN_LIST.style.transition = 'all 0.075s linear';
-      DROP_DOWN_LIST.style.display = 'none';
-      const OPEN_CLOSE_ARROW = document.querySelector('.prefix-dropdown_chevron') as HTMLDivElement;
-      OPEN_CLOSE_ARROW.style.transition = 'all 0.075s linear';
-      OPEN_CLOSE_ARROW.style.transform = 'rotate(0deg)';
-      deselectAll();
-    }
+  function setOptionLinkTag(country: Country, index: number) {
+    const optionLink = document.createElement('a');
+    optionLink.setAttribute('data-element', 'item');
+    optionLink.setAttribute('aria-role', 'option');
+    optionLink.setAttribute('aria-selected', 'false');
+    optionLink.setAttribute('aria-label', country.name);
+    optionLink.setAttribute('title', country.name);
+    optionLink.setAttribute('data-index', String(index));
+    optionLink.setAttribute('id', 'div' + index);
+    optionLink.href = '#';
+    optionLink.className = 'prefix-dropdown_item w-inline-block';
+    optionLink.addEventListener('click', function (event) {
+      setOptionByClick(event, this as unknown as HTMLLinkElement);
+    });
+    return optionLink;
   }
+
+  clearDivCountryList();
+  appendAllCountryOptionsToDivCountryList();
+
+  let arrowIndex = 1;
 
   function selectCountry(country: Country) {
-    const COUNTRY_CODE_INPUT = document.querySelector(
-      'input[name=countryCode]'
-    ) as HTMLInputElement;
-    COUNTRY_CODE_INPUT.value = country.prefix;
+    const countryCodeInput = document.querySelector('input[name=countryCode]') as HTMLInputElement;
+    countryCodeInput.value = country.prefix;
 
-    const DIV_SELECTED_INFORMATION = document.querySelector(
-      '.prefix-dropdown_toggle'
-    ) as HTMLElement;
-    const OPTION_LINK = DIV_SELECTED_INFORMATION.childNodes[0] as HTMLImageElement;
-    OPTION_LINK.src = country.flag;
-    OPTION_LINK.alt = country.name + ' Flag';
-    const OPTION_PREFIX = DIV_SELECTED_INFORMATION.childNodes[2] as HTMLDivElement;
-    OPTION_PREFIX.innerHTML = country.prefix;
+    const divSelectedInformation = document.querySelector('.prefix-dropdown_toggle') as HTMLElement;
+    const optionLink = divSelectedInformation.childNodes[0] as HTMLImageElement;
+    optionLink.src = country.flag;
+    optionLink.alt = country.name + ' Flag';
+    const optionPrefix = divSelectedInformation.childNodes[2] as HTMLDivElement;
+    optionPrefix.innerHTML = country.prefix;
 
     document.querySelectorAll('.prefix-dropdown_item').forEach(function (option) {
-      const LINK_SELECTED_COUNTRY = option as HTMLLinkElement;
-      if (LINK_SELECTED_COUNTRY.title !== country.name) {
-        LINK_SELECTED_COUNTRY.classList.remove('w--current');
+      const linkSelectedCountry = option as HTMLLinkElement;
+      if (linkSelectedCountry.title !== country.name) {
+        linkSelectedCountry.classList.remove('w--current');
       } else {
-        LINK_SELECTED_COUNTRY.classList.add('w--current');
-        arrowIndex = parseInt(LINK_SELECTED_COUNTRY.getAttribute('data-index') as string);
+        linkSelectedCountry.classList.add('w--current');
+        arrowIndex = parseInt(linkSelectedCountry.getAttribute('data-index') as string);
       }
     });
+  }
+
+  function getUserCountry() {
+    const userBrowserInformation = navigator.language.split('-');
+    const USER_COUNTRY_CODE_INDEX = 1;
+    return userBrowserInformation[USER_COUNTRY_CODE_INDEX];
   }
 
   function selectUserCountry() {
@@ -195,11 +167,11 @@ window.Webflow.push(async () => {
     let found = 0;
     let link_country_option = document.getElementById('div' + index) as HTMLLinkElement;
     while (link_country_option && !found) {
-      const DIV_TO_COMPARE = link_country_option.childNodes[1] as HTMLDivElement;
-      if (USER_COUNTRY_CODE === DIV_TO_COMPARE.innerHTML) {
+      const divToCompare = link_country_option.childNodes[1] as HTMLDivElement;
+      if (userCoutryCode === divToCompare.innerHTML) {
         deselectAll();
-        const COUNTRY_FOUND = setCountryVariable(link_country_option);
-        selectCountry(COUNTRY_FOUND);
+        const countryFound = setCountryVariable(link_country_option);
+        selectCountry(countryFound);
         found = 1;
       }
       index = index + 1;
@@ -207,25 +179,81 @@ window.Webflow.push(async () => {
     }
   }
 
+  const userCoutryCode = getUserCountry();
+  selectUserCountry();
+
+  const DIV_HEIGHT_AJUST = 2.2;
+
+  function setFocusOnCurrentCountry() {
+    const currentCountry = document.querySelector('.w--current') as HTMLDivElement;
+    if (currentCountry) {
+      if (currentCountry.offsetTop !== 0) {
+        const countryList = document.querySelector('.prefix-dropdown_list') as HTMLDivElement;
+        countryList.scrollTop =
+          currentCountry.offsetTop - countryList.clientHeight / DIV_HEIGHT_AJUST;
+      }
+      const currentIndex = currentCountry.getAttribute('data-index') as string;
+      arrowIndex = parseInt(currentIndex);
+    }
+  }
+
+  function toggleList() {
+    const dropDownSelectedInformation = document.querySelector(
+      '.prefix-dropdown_component'
+    ) as HTMLDivElement;
+    if (!dropDownSelectedInformation.classList.contains('open')) {
+      dropDownSelectedInformation.classList.add('open');
+      const dropDownList = document.querySelector(
+        '.prefix-dropdown_list-wrapper'
+      ) as HTMLDivElement;
+      dropDownList.style.transition = 'all 0.075s linear';
+      dropDownList.style.display = 'block';
+      const openCloseArrow = document.querySelector('.prefix-dropdown_chevron') as HTMLDivElement;
+      openCloseArrow.style.transition = 'all 0.075s linear';
+      openCloseArrow.style.transform = 'rotate(180deg)';
+    } else {
+      hideList();
+    }
+    setFocusOnCurrentCountry();
+  }
+
+  function hideList() {
+    const dropDownSelectedInformation = document.querySelector(
+      '.prefix-dropdown_component'
+    ) as HTMLDivElement;
+    if (dropDownSelectedInformation.classList.contains('open')) {
+      dropDownSelectedInformation.classList.remove('open');
+      const dropDownList = document.querySelector(
+        '.prefix-dropdown_list-wrapper'
+      ) as HTMLDivElement;
+      dropDownList.style.transition = 'all 0.075s linear';
+      dropDownList.style.display = 'none';
+      const openCloseArrow = document.querySelector('.prefix-dropdown_chevron') as HTMLDivElement;
+      openCloseArrow.style.transition = 'all 0.075s linear';
+      openCloseArrow.style.transform = 'rotate(0deg)';
+      deselectAll();
+    }
+  }
+
   function setOptionByClick(event: MouseEvent, linkClicked: HTMLLinkElement) {
     event.preventDefault();
-    const COUNTRY_SELECTED = setCountryVariable(linkClicked);
-    selectCountry(COUNTRY_SELECTED);
+    const countrySelected = setCountryVariable(linkClicked);
+    selectCountry(countrySelected);
     toggleList();
   }
 
   function setByEnterOrSpace(event: Event) {
     if (document.activeElement === document.querySelector('.prefix-dropdown_toggle')) {
       event.preventDefault();
-      const DROP_DOWN_SELECTED_INFORMATION = document.querySelector(
+      const dropDownSelectedInformation = document.querySelector(
         '.prefix-dropdown_component'
       ) as HTMLDivElement;
-      if (DROP_DOWN_SELECTED_INFORMATION.classList.contains('open')) {
-        const CURRENT_COUNTRY = document.querySelector('.w--current');
-        const COUNTRY_SELECTED = document.getElementById('div' + arrowIndex) as HTMLLinkElement;
-        if (CURRENT_COUNTRY && COUNTRY_SELECTED && CURRENT_COUNTRY !== COUNTRY_SELECTED) {
-          const COUNTRY = setCountryVariable(COUNTRY_SELECTED);
-          selectCountry(COUNTRY);
+      if (dropDownSelectedInformation.classList.contains('open')) {
+        const currentCountry = document.querySelector('.w--current');
+        const countrySelected = document.getElementById('div' + arrowIndex) as HTMLLinkElement;
+        if (currentCountry && countrySelected && currentCountry !== countrySelected) {
+          const country = setCountryVariable(countrySelected);
+          selectCountry(country);
         }
       }
     }
@@ -233,37 +261,35 @@ window.Webflow.push(async () => {
   }
 
   function setCountryVariable(divLink: HTMLLinkElement) {
-    const PREFIX_DIV = divLink.childNodes[1] as HTMLDivElement;
-    const FLAG_IMG = divLink.childNodes[0] as HTMLImageElement;
-    const COUNTRY = {
-      code: PREFIX_DIV.innerHTML,
-      prefix: PREFIX_DIV.getAttribute('data-prefix') as string,
-      flag: FLAG_IMG.src,
+    const prefixDiv = divLink.childNodes[1] as HTMLDivElement;
+    const flagImage = divLink.childNodes[0] as HTMLImageElement;
+    const country = {
+      code: prefixDiv.innerHTML,
+      prefix: prefixDiv.getAttribute('data-prefix') as string,
+      flag: flagImage.src,
       name: divLink.title,
     };
-    return COUNTRY;
+    return country;
   }
 
   function focusOnTypedLetter(event: KeyboardEvent) {
-    const KEY_TYPED = event.key as string;
-    const DROP_DOWN_SELECTED_INFORMATION = document.querySelector(
+    const keyTyped = event.key as string;
+    const dropDownSelectedInformation = document.querySelector(
       '.prefix-dropdown_component'
     ) as HTMLDivElement;
-    if (DROP_DOWN_SELECTED_INFORMATION.classList.contains('open')) {
-      if (KEY_TYPED.length === 1 && KEY_TYPED.match(/[a-z]/i)) {
-        const LETTER_TYPED = KEY_TYPED.toUpperCase();
+    if (dropDownSelectedInformation.classList.contains('open')) {
+      if (keyTyped.length === 1 && keyTyped.match(/[a-z]/i)) {
+        const letterTyped = keyTyped.toUpperCase();
         let index = 0;
         let found = 0;
         let link_country_option = document.getElementById('div' + index);
         while (link_country_option && !found) {
-          const DIV_TO_COMPARE = link_country_option.childNodes[1] as HTMLDivElement;
-          if (LETTER_TYPED === DIV_TO_COMPARE.innerHTML.charAt(0)) {
+          const divToCompare = link_country_option.childNodes[1] as HTMLDivElement;
+          if (letterTyped === divToCompare.innerHTML.charAt(0)) {
             arrowIndex = index;
-            const COUNTRIES_LIST = document.querySelector(
-              '.prefix-dropdown_list'
-            ) as HTMLDivElement;
-            COUNTRIES_LIST.scrollTop =
-              link_country_option.offsetTop - COUNTRIES_LIST.clientHeight / DIV_HEIGHT_AJUST;
+            const countryList = document.querySelector('.prefix-dropdown_list') as HTMLDivElement;
+            countryList.scrollTop =
+              link_country_option.offsetTop - countryList.clientHeight / DIV_HEIGHT_AJUST;
             deselectAll();
             link_country_option.classList.add('arrowSelected');
             found = 1;
@@ -275,29 +301,25 @@ window.Webflow.push(async () => {
     }
   }
 
-  function arrowSelectCountry(direction: string, event: Event) {
-    const DROP_DOWN_SELECTED_INFORMATION = document.querySelector(
+  function arrowSelectCountry(event: Event, direction: string) {
+    const dropDownSelectedInformation = document.querySelector(
       '.prefix-dropdown_component'
     ) as HTMLDivElement;
-    if (DROP_DOWN_SELECTED_INFORMATION.classList.contains('open')) {
+    if (dropDownSelectedInformation.classList.contains('open')) {
       event.preventDefault();
       if (direction === 'up') {
-        const COUNTRY_SELECTED = document.getElementById(
-          'div' + (arrowIndex - 1)
-        ) as HTMLDivElement;
-        if (COUNTRY_SELECTED) {
+        const countrySelected = document.getElementById('div' + (arrowIndex - 1)) as HTMLDivElement;
+        if (countrySelected) {
           arrowIndex = arrowIndex - 1;
           deselectAll();
-          setCountrySeleted(COUNTRY_SELECTED);
+          setCountrySeleted(countrySelected);
         }
       } else {
-        const COUNTRY_SELECTED = document.getElementById(
-          'div' + (arrowIndex + 1)
-        ) as HTMLDivElement;
-        if (COUNTRY_SELECTED) {
+        const countrySelected = document.getElementById('div' + (arrowIndex + 1)) as HTMLDivElement;
+        if (countrySelected) {
           arrowIndex = arrowIndex + 1;
           deselectAll();
-          setCountrySeleted(COUNTRY_SELECTED);
+          setCountrySeleted(countrySelected);
         }
       }
     }
@@ -310,35 +332,28 @@ window.Webflow.push(async () => {
   }
 
   function setCountrySeleted(country_selected: HTMLDivElement) {
-    const COUNTRIES_LIST = document.querySelector('.prefix-dropdown_list') as HTMLDivElement;
-    COUNTRIES_LIST.scrollTop =
-      country_selected.offsetTop - COUNTRIES_LIST.clientHeight / DIV_HEIGHT_AJUST;
+    const countryList = document.querySelector('.prefix-dropdown_list') as HTMLDivElement;
+    countryList.scrollTop =
+      country_selected.offsetTop - countryList.clientHeight / DIV_HEIGHT_AJUST;
     country_selected.classList.add('arrowSelected');
   }
 
-  let arrowIndex = 1;
-
-  await setCountryArray();
-  sortCountriesArray();
-  appendAllCountryOptionsToDivList();
-  selectUserCountry();
-
-  const DIV_DROP_DOWN_LIST = document.querySelector('.prefix-dropdown_toggle') as HTMLDivElement;
-  DIV_DROP_DOWN_LIST.setAttribute('tabindex', '1');
+  const divDropDownList = document.querySelector('.prefix-dropdown_toggle') as HTMLDivElement;
+  divDropDownList.setAttribute('tabindex', '1');
   const fieldInput = document.querySelector('.text-field.w-input') as HTMLInputElement;
   fieldInput.setAttribute('tabindex', '2');
 
-  DIV_DROP_DOWN_LIST.addEventListener('click', function () {
+  divDropDownList.addEventListener('click', function () {
     toggleList();
   });
 
-  DIV_DROP_DOWN_LIST.addEventListener('keydown', function (event: KeyboardEvent) {
+  divDropDownList.addEventListener('keydown', function (event: KeyboardEvent) {
     switch (event.key) {
       case 'ArrowDown':
-        arrowSelectCountry('down', event);
+        arrowSelectCountry(event, 'down');
         break;
       case 'ArrowUp':
-        arrowSelectCountry('up', event);
+        arrowSelectCountry(event, 'up');
         break;
       case 'Enter':
         setByEnterOrSpace(event);
@@ -359,38 +374,38 @@ window.Webflow.push(async () => {
   });
 
   async function submitButtonAction() {
-    const PHONE_NUMBER = document.querySelector('[name="phoneNumber"]') as HTMLInputElement;
-    const COUNTRY_CODE = document.querySelector('[name="countryCode"]') as HTMLInputElement;
+    const phoneNumber = document.querySelector('[name="phoneNumber"]') as HTMLInputElement;
+    const countryCode = document.querySelector('[name="countryCode"]') as HTMLInputElement;
 
     const response = await fetch('https://webflow.com/api/v1/form/6273d3f75ac01db3e57995c8', {
       method: 'POST',
       body:
         'fields[Phone Number]=' +
-        PHONE_NUMBER.value +
+        phoneNumber.value +
         '&fields[countryCode]=' +
-        COUNTRY_CODE.value +
+        countryCode.value +
         '&name=Phone Form&dolphin=false&teste=false&source=https://secondchancefinsweet.webflow.io/',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
     });
 
     if (!response.ok) {
-      const FORM_DIV = document.getElementById('phone-form') as HTMLDivElement;
-      FORM_DIV.style.display = 'none';
-      const FAIL_DIV = document.querySelector('.w-form-fail') as HTMLDivElement;
-      FAIL_DIV.style.display = 'block';
+      const formDiv = document.getElementById('phone-form') as HTMLDivElement;
+      formDiv.style.display = 'none';
+      const failDiv = document.querySelector('.w-form-fail') as HTMLDivElement;
+      failDiv.style.display = 'block';
     } else {
-      const FORM_DIV = document.getElementById('phone-form') as HTMLDivElement;
-      FORM_DIV.style.display = 'none';
-      const THANKS_DIV = document.querySelector('.w-form-done') as HTMLDivElement;
-      THANKS_DIV.style.display = 'block';
+      const formDiv = document.getElementById('phone-form') as HTMLDivElement;
+      formDiv.style.display = 'none';
+      const thanksDiv = document.querySelector('.w-form-done') as HTMLDivElement;
+      thanksDiv.style.display = 'block';
     }
   }
 
-  const SUBMIT_BUTTON = document.querySelector('.button.w-button') as HTMLInputElement;
-  SUBMIT_BUTTON.addEventListener('click', function (event) {
+  const subimitButton = document.querySelector('.button.w-button') as HTMLInputElement;
+  subimitButton.addEventListener('click', function (event) {
     event.preventDefault();
-    const FORM_ELEMENT = document.getElementById('phone-form') as HTMLFormElement;
-    if (FORM_ELEMENT.reportValidity()) {
+    const formElement = document.getElementById('phone-form') as HTMLFormElement;
+    if (formElement.reportValidity()) {
       hideList();
       this.value = this.getAttribute('data-wait') as string;
       submitButtonAction();
