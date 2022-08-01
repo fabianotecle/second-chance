@@ -35,10 +35,11 @@ window.Webflow.push(async () => {
     });
   }
 
+  const URL_JSON_COUNTRIES_WEBSERVICE =
+    'https://restcountries.com/v3.1/all?fields=name,cca2,idd,flags';
+
   async function getCountriesFromWebservice() {
-    const jsonCountriesFromWebservice = await fetch(
-      'https://restcountries.com/v3.1/all?fields=name,cca2,idd,flags'
-    );
+    const jsonCountriesFromWebservice = await fetch(URL_JSON_COUNTRIES_WEBSERVICE);
 
     if (jsonCountriesFromWebservice.ok) {
       return jsonCountriesFromWebservice.json();
@@ -135,16 +136,26 @@ window.Webflow.push(async () => {
   let arrowIndex = 1;
 
   function selectCountry(country: Country) {
+    setCountryInputValue(country);
+    setSelectedInformationDiv(country);
+    setListCurrentPosition(country);
+  }
+
+  function setCountryInputValue(country: Country) {
     const countryCodeInput = document.querySelector('input[name=countryCode]') as HTMLInputElement;
     countryCodeInput.value = country.prefix;
+  }
 
+  function setSelectedInformationDiv(country: Country) {
     const divSelectedInformation = document.querySelector('.prefix-dropdown_toggle') as HTMLElement;
     const optionLink = divSelectedInformation.childNodes[0] as HTMLImageElement;
     optionLink.src = country.flag;
     optionLink.alt = country.name + ' Flag';
     const optionPrefix = divSelectedInformation.childNodes[2] as HTMLDivElement;
     optionPrefix.innerHTML = country.prefix;
+  }
 
+  function setListCurrentPosition(country: Country) {
     document.querySelectorAll('.prefix-dropdown_item').forEach(function (option) {
       const linkSelectedCountry = option as HTMLLinkElement;
       if (linkSelectedCountry.title !== country.name) {
@@ -164,19 +175,25 @@ window.Webflow.push(async () => {
 
   function selectUserCountry() {
     let index = 0;
-    let found = 0;
-    let link_country_option = document.getElementById('div' + index) as HTMLLinkElement;
-    while (link_country_option && !found) {
-      const divToCompare = link_country_option.childNodes[1] as HTMLDivElement;
+    let found = false;
+    let linkCountryOption = document.getElementById('div' + index) as HTMLLinkElement;
+    while (linkCountryOption && !found) {
+      const divToCompare = linkCountryOption.childNodes[1] as HTMLDivElement;
       if (userCoutryCode === divToCompare.innerHTML) {
         deselectAll();
-        const countryFound = setCountryVariable(link_country_option);
+        const countryFound = setCountryVariable(linkCountryOption);
         selectCountry(countryFound);
-        found = 1;
+        found = true;
       }
       index = index + 1;
-      link_country_option = document.getElementById('div' + index) as HTMLLinkElement;
+      linkCountryOption = document.getElementById('div' + index) as HTMLLinkElement;
     }
+  }
+
+  function deselectAll() {
+    document.querySelectorAll('.prefix-dropdown_item').forEach(function (option) {
+      option.classList.remove('arrowSelected');
+    });
   }
 
   const userCoutryCode = getUserCountry();
@@ -203,14 +220,8 @@ window.Webflow.push(async () => {
     ) as HTMLDivElement;
     if (!dropDownSelectedInformation.classList.contains('open')) {
       dropDownSelectedInformation.classList.add('open');
-      const dropDownList = document.querySelector(
-        '.prefix-dropdown_list-wrapper'
-      ) as HTMLDivElement;
-      dropDownList.style.transition = 'all 0.075s linear';
-      dropDownList.style.display = 'block';
-      const openCloseArrow = document.querySelector('.prefix-dropdown_chevron') as HTMLDivElement;
-      openCloseArrow.style.transition = 'all 0.075s linear';
-      openCloseArrow.style.transform = 'rotate(180deg)';
+      showList();
+      setChevronIconUp();
     } else {
       hideList();
     }
@@ -228,11 +239,27 @@ window.Webflow.push(async () => {
       ) as HTMLDivElement;
       dropDownList.style.transition = 'all 0.075s linear';
       dropDownList.style.display = 'none';
-      const openCloseArrow = document.querySelector('.prefix-dropdown_chevron') as HTMLDivElement;
-      openCloseArrow.style.transition = 'all 0.075s linear';
-      openCloseArrow.style.transform = 'rotate(0deg)';
+      setChevronIconDown();
       deselectAll();
     }
+  }
+
+  function showList() {
+    const dropDownList = document.querySelector('.prefix-dropdown_list-wrapper') as HTMLDivElement;
+    dropDownList.style.transition = 'all 0.075s linear';
+    dropDownList.style.display = 'block';
+  }
+
+  function setChevronIconUp() {
+    const openCloseArrow = document.querySelector('.prefix-dropdown_chevron') as HTMLDivElement;
+    openCloseArrow.style.transition = 'all 0.075s linear';
+    openCloseArrow.style.transform = 'rotate(180deg)';
+  }
+
+  function setChevronIconDown() {
+    const openCloseArrow = document.querySelector('.prefix-dropdown_chevron') as HTMLDivElement;
+    openCloseArrow.style.transition = 'all 0.075s linear';
+    openCloseArrow.style.transform = 'rotate(0deg)';
   }
 
   function setOptionByClick(event: MouseEvent, linkClicked: HTMLLinkElement) {
@@ -323,12 +350,6 @@ window.Webflow.push(async () => {
         }
       }
     }
-  }
-
-  function deselectAll() {
-    document.querySelectorAll('.prefix-dropdown_item').forEach(function (option) {
-      option.classList.remove('arrowSelected');
-    });
   }
 
   function setCountrySeleted(country_selected: HTMLDivElement) {
