@@ -37,11 +37,17 @@ window.Webflow.push(async () => {
 
   const URL_JSON_COUNTRIES_WEBSERVICE =
     'https://restcountries.com/v3.1/all?fields=name,cca2,idd,flags';
+  const URL_LOCAL_JSON_US = './json/us-country.json';
+
+  let userCoutryCode = getUserCountry();
 
   async function getCountriesFromWebservice() {
-    const jsonCountriesFromWebservice = await fetch(URL_JSON_COUNTRIES_WEBSERVICE);
-
-    if (jsonCountriesFromWebservice.ok) {
+    try {
+      const jsonCountriesFromWebservice = await fetch(URL_JSON_COUNTRIES_WEBSERVICE);
+      return jsonCountriesFromWebservice.json();
+    } catch (error) {
+      userCoutryCode = 'US';
+      const jsonCountriesFromWebservice = await fetch(URL_LOCAL_JSON_US);
       return jsonCountriesFromWebservice.json();
     }
   }
@@ -196,7 +202,6 @@ window.Webflow.push(async () => {
     });
   }
 
-  const userCoutryCode = getUserCountry();
   selectUserCountry();
 
   const DIV_HEIGHT_AJUST = 2.2;
