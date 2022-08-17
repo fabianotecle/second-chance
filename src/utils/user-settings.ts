@@ -1,14 +1,14 @@
 import { deselectAll, selectCountry, setCountryVariable } from 'src/drop-down-list';
 
-const userCoutryCode = getUserCountry();
+const userCoutryCode = getUserLocation();
 
-function getUserCountry() {
+function getUserLocation() {
   const userBrowserInformation = navigator.language.split('-');
-  const USER_COUNTRY_CODE_INDEX = 1;
-  return userBrowserInformation[USER_COUNTRY_CODE_INDEX];
+  const USER_LOCATION_CODE_INDEX = 1;
+  return userBrowserInformation[USER_LOCATION_CODE_INDEX];
 }
 
-export function selectUserCountry() {
+export function selectUserLocation() {
   let index = 0;
   let found = false;
   let linkCountryOption = document.getElementById('div' + index) as HTMLLinkElement;
