@@ -43,26 +43,26 @@ async function getCountriesFromWebservice() {
 function sortCountries() {
   let sorted = false;
   while (!sorted) {
-    sorted = sort();
+    sorted = trySort();
   }
 }
 
-function sort() {
+function trySort() {
   let sorted = true;
-  let index = 0;
-  countries.forEach(function () {
-    if (index > 0) {
-      const previousIndex = index - 1;
-      if (countries[previousIndex].code > countries[index].code) {
-        const placeholder = countries[index];
-        countries[index] = countries[previousIndex];
-        countries[previousIndex] = placeholder;
-        sorted = false;
-      }
+  const end = countries.length - 1;
+  for (let index = 1; index <= end; index++) {
+    if (countries[index - 1].code > countries[index].code) {
+      swap(index);
+      sorted = false;
     }
-    index = index + 1;
-  });
+  }
   return sorted;
+}
+
+function swap(index: number) {
+  const placeholder = countries[index];
+  countries[index] = countries[index - 1];
+  countries[index - 1] = placeholder;
 }
 
 export async function getCountries() {

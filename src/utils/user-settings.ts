@@ -1,4 +1,4 @@
-import { deselectAll, selectCountry, setCountryVariable } from 'src/drop-down-list';
+import { deselectAll, selectCountry, setCountryVariable } from '$utils/drop-down-list';
 
 const userCoutryCode = getUserLocation();
 

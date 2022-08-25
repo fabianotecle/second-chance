@@ -1,4 +1,4 @@
-import { hideList } from 'src/drop-down-list';
+import { hideList } from '$utils/drop-down-list';
 
 function setTabOrder() {
   const divDropDownList = document.querySelector('.prefix-dropdown_toggle') as HTMLDivElement;
