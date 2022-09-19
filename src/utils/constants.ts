@@ -1,19 +1,19 @@
 export const DROPDOWN = {
-  list: '.prefix-dropdown_list',
-  toggle: '.prefix-dropdown_toggle',
-  wrapper: '.prefix-dropdown_list-wrapper',
-  chevron: '.prefix-dropdown_chevron',
-  current: '.w--current',
-  component: '.prefix-dropdown_component',
-  item: '.prefix-dropdown_item',
+  LIST: '.prefix-dropdown_list',
+  TOGGLE: '.prefix-dropdown_toggle',
+  WRAPPER: '.prefix-dropdown_list-wrapper',
+  CHEVRON: '.prefix-dropdown_chevron',
+  CURRENT: '.w--current',
+  COMPONENT: '.prefix-dropdown_component',
+  ITEM: '.prefix-dropdown_item',
 };
 
 export const FORM = {
-  fieldInput: document.querySelector<HTMLInputElement>('.text-field.w-input'),
-  element: document.getElementById('phone-form') as HTMLFormElement,
-  failDiv: document.querySelector<HTMLDivElement>('.w-form-fail'),
-  thanksDiv: document.querySelector<HTMLDivElement>('.w-form-done'),
-  phoneNumber: document.querySelector<HTMLInputElement>('[name="phoneNumber"]'),
-  countryCode: document.querySelector<HTMLInputElement>('[name="countryCode"]'),
-  button: document.querySelector<HTMLInputElement>('.button.w-button'),
+  FIELD_INPUT: '.text-field.w-input',
+  ELEMENT: document.getElementById('phone-form') as HTMLFormElement,
+  FAIL_DIV: document.querySelector<HTMLDivElement>('.w-form-fail'),
+  THANKS_DIV: document.querySelector<HTMLDivElement>('.w-form-done'),
+  PHONE_NUMBER: '[name="phoneNumber"]',
+  COUNTRY_CODE: '[name="countryCode"]',
+  BUTTON: '.button.w-button',
 };

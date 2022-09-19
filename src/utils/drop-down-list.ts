@@ -4,16 +4,16 @@ import { selectUserLocation } from '$utils/user-settings';
 import { DROPDOWN, FORM } from './constants';
 
 function clearDropDown() {
-  const dropDownList = document.querySelector<HTMLDivElement>(DROPDOWN.list);
-  if (dropDownList && dropDownList.firstElementChild) {
-    dropDownList.removeChild(dropDownList.firstElementChild);
+  const list = document.querySelector<HTMLDivElement>(DROPDOWN.LIST);
+  if (list && list.firstElementChild) {
+    list.removeChild(list.firstElementChild);
   }
 }
 
 function appendAllCountries(countries: Country[]) {
   let index = 0;
-  const dropDownList = document.querySelector<HTMLDivElement>(DROPDOWN.list);
-  if (dropDownList) {
+  const list = document.querySelector<HTMLDivElement>(DROPDOWN.LIST);
+  if (list) {
     countries.forEach((country) => {
       const flag = createFlagElement(country);
       const prefix = createPrefixElement(country);
@@ -21,7 +21,7 @@ function appendAllCountries(countries: Country[]) {
 
       link.appendChild(flag);
       link.appendChild(prefix);
-      dropDownList.appendChild(link);
+      list.appendChild(link);
 
       index = index + 1;
     });
@@ -70,18 +70,18 @@ function setOptionByClick(event: MouseEvent, linkClicked: HTMLLinkElement) {
   toggleList();
 }
 
-function setFieldCode(country: Country) {
-  const fieldCode = FORM.countryCode;
-  if (fieldCode) {
-    fieldCode.value = country.prefix;
+function setcountryCode(country: Country) {
+  const countryCode = document.querySelector<HTMLInputElement>(FORM.COUNTRY_CODE);
+  if (countryCode) {
+    countryCode.value = country.prefix;
   }
 }
 
 function setSelected(country: Country) {
-  const dropDownToggle = document.querySelector<HTMLDivElement>(DROPDOWN.toggle);
-  if (dropDownToggle) {
-    setDropDownToggleLink(country, dropDownToggle);
-    setDropDownTogglePrefix(country, dropDownToggle);
+  const toggle = document.querySelector<HTMLDivElement>(DROPDOWN.TOGGLE);
+  if (toggle) {
+    setDropDownToggleLink(country, toggle);
+    setDropDownTogglePrefix(country, toggle);
   }
 }
 
@@ -97,7 +97,7 @@ function setDropDownTogglePrefix(country: Country, dropDownToggle: HTMLDivElemen
 }
 
 function setCurrent(country: Country) {
-  document.querySelectorAll<HTMLLinkElement>(DROPDOWN.item).forEach(function (option) {
+  document.querySelectorAll<HTMLLinkElement>(DROPDOWN.ITEM).forEach(function (option) {
     const link = option;
     if (link.title !== country.name) {
       link.classList.remove('w--current');
@@ -109,48 +109,47 @@ function setCurrent(country: Country) {
 }
 
 function showWrapper() {
-  const dropDownWrapper = document.querySelector<HTMLDivElement>(DROPDOWN.wrapper);
-  if (dropDownWrapper) {
-    dropDownWrapper.style.transition = 'all 0.075s linear';
-    dropDownWrapper.style.display = 'block';
+  const wrapper = document.querySelector<HTMLDivElement>(DROPDOWN.WRAPPER);
+  if (wrapper) {
+    wrapper.style.transition = 'all 0.075s linear';
+    wrapper.style.display = 'block';
   }
 }
 
 function setChevronIconUp() {
-  const dropDownChevron = document.querySelector<HTMLDivElement>(DROPDOWN.chevron);
-  if (dropDownChevron) {
-    dropDownChevron.style.transition = 'all 0.075s linear';
-    dropDownChevron.style.transform = 'rotate(180deg)';
+  const chevron = document.querySelector<HTMLDivElement>(DROPDOWN.CHEVRON);
+  if (chevron) {
+    chevron.style.transition = 'all 0.075s linear';
+    chevron.style.transform = 'rotate(180deg)';
   }
 }
 
 function setChevronIconDown() {
-  const dropDownChevron = document.querySelector<HTMLDivElement>(DROPDOWN.chevron);
-  if (dropDownChevron) {
-    dropDownChevron.style.transition = 'all 0.075s linear';
-    dropDownChevron.style.transform = 'rotate(0deg)';
+  const chevron = document.querySelector<HTMLDivElement>(DROPDOWN.CHEVRON);
+  if (chevron) {
+    chevron.style.transition = 'all 0.075s linear';
+    chevron.style.transform = 'rotate(0deg)';
   }
 }
 
 function hideWrapper() {
-  const dropDownWrapper = document.querySelector<HTMLDivElement>(DROPDOWN.wrapper);
-  if (dropDownWrapper) {
-    dropDownWrapper.style.transition = 'all 0.075s linear';
-    dropDownWrapper.style.display = 'none';
+  const wrapper = document.querySelector<HTMLDivElement>(DROPDOWN.WRAPPER);
+  if (wrapper) {
+    wrapper.style.transition = 'all 0.075s linear';
+    wrapper.style.display = 'none';
   }
 }
 
 const DIV_HEIGHT_AJUST = 2.2;
 
 function setFocus() {
-  const dropDownCurrent = document.querySelector<HTMLLinkElement>(DROPDOWN.current);
-  const dropDownList = document.querySelector<HTMLDivElement>(DROPDOWN.list);
-  if (dropDownCurrent && dropDownList) {
-    if (dropDownCurrent.offsetTop !== 0) {
-      dropDownList.scrollTop =
-        dropDownCurrent.offsetTop - dropDownList.clientHeight / DIV_HEIGHT_AJUST;
+  const current = document.querySelector<HTMLLinkElement>(DROPDOWN.CURRENT);
+  const list = document.querySelector<HTMLDivElement>(DROPDOWN.LIST);
+  if (current && list) {
+    if (current.offsetTop !== 0) {
+      list.scrollTop = current.offsetTop - list.clientHeight / DIV_HEIGHT_AJUST;
     }
-    const currentIndex = dropDownCurrent.getAttribute('data-index') as string;
+    const currentIndex = current.getAttribute('data-index') as string;
     arrowIndex = parseInt(currentIndex);
   }
 }
@@ -158,17 +157,17 @@ function setFocus() {
 let arrowIndex = 1;
 
 function setSeleted(selected: HTMLLinkElement) {
-  const dropDownList = document.querySelector<HTMLDivElement>(DROPDOWN.list);
-  if (dropDownList) {
-    dropDownList.scrollTop = selected.offsetTop - dropDownList.clientHeight / DIV_HEIGHT_AJUST;
+  const list = document.querySelector<HTMLDivElement>(DROPDOWN.LIST);
+  if (list) {
+    list.scrollTop = selected.offsetTop - list.clientHeight / DIV_HEIGHT_AJUST;
     selected.classList.add('arrowSelected');
   }
 }
 
 function addListeners() {
-  const dropDownToggle = document.querySelector<HTMLDivElement>(DROPDOWN.toggle);
-  if (dropDownToggle) {
-    dropDownToggle.addEventListener('keydown', function (event: KeyboardEvent) {
+  const toggle = document.querySelector<HTMLDivElement>(DROPDOWN.TOGGLE);
+  if (toggle) {
+    toggle.addEventListener('keydown', function (event: KeyboardEvent) {
       switch (event.key) {
         case 'ArrowDown':
           selectCountryByUpOrDown(event, 'down');
@@ -194,7 +193,7 @@ function addListeners() {
       }
     });
 
-    dropDownToggle.addEventListener('click', function () {
+    toggle.addEventListener('click', function () {
       toggleList();
     });
   }
@@ -238,15 +237,15 @@ export function setCountryVariable(divLink: HTMLLinkElement) {
 }
 
 export function selectCountry(country: Country) {
-  setFieldCode(country);
+  setcountryCode(country);
   setSelected(country);
   setCurrent(country);
 }
 
 export function toggleList() {
-  const dropDownComponent = document.querySelector<HTMLDivElement>(DROPDOWN.component);
-  if (dropDownComponent && !dropDownComponent.classList.contains('open')) {
-    dropDownComponent.classList.add('open');
+  const component = document.querySelector<HTMLDivElement>(DROPDOWN.COMPONENT);
+  if (component && !component.classList.contains('open')) {
+    component.classList.add('open');
     showWrapper();
     setChevronIconUp();
   } else {
@@ -256,9 +255,9 @@ export function toggleList() {
 }
 
 export function hideList() {
-  const dropDownComponent = document.querySelector<HTMLDivElement>(DROPDOWN.component);
-  if (dropDownComponent && dropDownComponent.classList.contains('open')) {
-    dropDownComponent.classList.remove('open');
+  const component = document.querySelector<HTMLDivElement>(DROPDOWN.COMPONENT);
+  if (component && component.classList.contains('open')) {
+    component.classList.remove('open');
     hideWrapper();
     setChevronIconDown();
     deselectAll();
@@ -266,14 +265,14 @@ export function hideList() {
 }
 
 export function deselectAll() {
-  document.querySelectorAll<HTMLLinkElement>(DROPDOWN.item).forEach(function (option) {
+  document.querySelectorAll<HTMLLinkElement>(DROPDOWN.ITEM).forEach(function (option) {
     option.classList.remove('arrowSelected');
   });
 }
 
 export function selectCountryByUpOrDown(event: Event, direction: string) {
-  const dropDowncomponent = document.querySelector<HTMLDivElement>(DROPDOWN.component);
-  if (dropDowncomponent && dropDowncomponent.classList.contains('open')) {
+  const component = document.querySelector<HTMLDivElement>(DROPDOWN.COMPONENT);
+  if (component && component.classList.contains('open')) {
     event.preventDefault();
     if (direction === 'up') {
       const selected = document.getElementById('div' + (arrowIndex - 1)) as HTMLLinkElement;
@@ -294,11 +293,11 @@ export function selectCountryByUpOrDown(event: Event, direction: string) {
 }
 
 export function selectCountryByEnterOrSpace(event: Event) {
-  if (document.activeElement === document.querySelector<HTMLDivElement>(DROPDOWN.toggle)) {
+  if (document.activeElement === document.querySelector<HTMLDivElement>(DROPDOWN.TOGGLE)) {
     event.preventDefault();
-    const dropDownComponent = document.querySelector<HTMLDivElement>(DROPDOWN.component);
-    if (dropDownComponent && dropDownComponent.classList.contains('open')) {
-      const dropDownCurrent = document.querySelector<HTMLLinkElement>(DROPDOWN.current);
+    const component = document.querySelector<HTMLDivElement>(DROPDOWN.COMPONENT);
+    if (component && component.classList.contains('open')) {
+      const dropDownCurrent = document.querySelector<HTMLLinkElement>(DROPDOWN.CURRENT);
       const selected = document.getElementById('div' + arrowIndex) as HTMLLinkElement;
       if (dropDownCurrent && selected && dropDownCurrent !== selected) {
         const country = setCountryVariable(selected);
@@ -311,12 +310,8 @@ export function selectCountryByEnterOrSpace(event: Event) {
 
 export function focusOnTypedLetter(event: KeyboardEvent) {
   const keyTyped = event.key as string;
-  const dropDownComponent = document.querySelector<HTMLDivElement>(DROPDOWN.component);
-  if (
-    dropDownComponent &&
-    dropDownComponent.classList.contains('open') &&
-    keyTyped.match(/[a-z]/i)
-  ) {
+  const component = document.querySelector<HTMLDivElement>(DROPDOWN.COMPONENT);
+  if (component && component.classList.contains('open') && keyTyped.match(/[a-z]/i)) {
     findLetterInList(keyTyped);
   }
 }
