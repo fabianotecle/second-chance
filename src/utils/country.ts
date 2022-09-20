@@ -1,4 +1,4 @@
-import type { Country, CountryRow } from '$utils/interfaces';
+import type { Country, CountryFromWebservice } from '$utils/interfaces';
 
 const URL_JSON_COUNTRIES_WEBSERVICE =
   'https://restcountries.com/v3.1/all?fields=name,cca2,idd,flags';
@@ -7,11 +7,11 @@ const URL_LOCAL_JSON_US = './json/us-country.json';
 
 const CODES_WITHOUT_SUFFIX = ['US', 'PR', 'RU', 'EH', 'KZ', 'VA', 'DO', 'SH'];
 
-const countries: Country[] = [];
+let countries: Country[] = [];
 
 async function setCountries() {
   const countriesFromWebservice = await getCountriesFromWebservice();
-  countriesFromWebservice.forEach(function (row: CountryRow) {
+  countriesFromWebservice.forEach(function (row: CountryFromWebservice) {
     let prefix = row.idd.root;
     const code = row.cca2;
     if (prefix) {
@@ -41,28 +41,16 @@ async function getCountriesFromWebservice() {
 }
 
 function sortCountries() {
-  let sorted = false;
-  while (!sorted) {
-    sorted = trySort();
-  }
-}
-
-function trySort() {
-  let sorted = true;
-  const end = countries.length - 1;
-  for (let index = 1; index <= end; index++) {
-    if (countries[index - 1].code > countries[index].code) {
-      swap(index);
-      sorted = false;
+  const unsortedCountries: Country[] = countries;
+  countries = unsortedCountries.sort((country, country_next) => {
+    if (country.code < country_next.code) {
+      return -1;
     }
-  }
-  return sorted;
-}
-
-function swap(index: number) {
-  const placeholder = countries[index];
-  countries[index] = countries[index - 1];
-  countries[index - 1] = placeholder;
+    if (country.code > country_next.code) {
+      return 1;
+    }
+    return 0;
+  });
 }
 
 export async function getCountries() {

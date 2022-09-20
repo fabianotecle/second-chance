@@ -10,10 +10,10 @@ export const DROPDOWN = {
 
 export const FORM = {
   FIELD_INPUT: '.text-field.w-input',
-  ELEMENT: document.getElementById('phone-form') as HTMLFormElement,
-  FAIL_DIV: document.querySelector<HTMLDivElement>('.w-form-fail'),
-  THANKS_DIV: document.querySelector<HTMLDivElement>('.w-form-done'),
+  ELEMENT: 'phone-form',
+  FAIL_DIV: '.w-form-fail',
+  THANKS_DIV: '.w-form-done',
   PHONE_NUMBER: '[name="phoneNumber"]',
   COUNTRY_CODE: '[name="countryCode"]',
-  BUTTON: '.button.w-button',
+  SUBMIT_BUTTON: '.button.w-button',
 };

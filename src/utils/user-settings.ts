@@ -11,7 +11,7 @@ function getUserLocation() {
 export function selectUserLocation() {
   let index = 0;
   let found = false;
-  let linkCountryOption = document.getElementById('div' + index) as HTMLLinkElement;
+  let linkCountryOption = document.getElementById('country_' + index) as HTMLLinkElement;
   while (linkCountryOption && !found) {
     const divToCompare = linkCountryOption.childNodes[1] as HTMLDivElement;
     if (userCoutryCode === divToCompare.innerHTML) {
@@ -21,6 +21,6 @@ export function selectUserLocation() {
       found = true;
     }
     index = index + 1;
-    linkCountryOption = document.getElementById('div' + index) as HTMLLinkElement;
+    linkCountryOption = document.getElementById('country_' + index) as HTMLLinkElement;
   }
 }

@@ -4,16 +4,16 @@ import { selectUserLocation } from '$utils/user-settings';
 import { DROPDOWN, FORM } from './constants';
 
 function clearDropDown() {
-  const list = document.querySelector<HTMLDivElement>(DROPDOWN.LIST);
-  if (list && list.firstElementChild) {
-    list.removeChild(list.firstElementChild);
+  const LIST = document.querySelector<HTMLDivElement>(DROPDOWN.LIST);
+  if (LIST && LIST.firstElementChild) {
+    LIST.removeChild(LIST.firstElementChild);
   }
 }
 
 function appendAllCountries(countries: Country[]) {
   let index = 0;
-  const list = document.querySelector<HTMLDivElement>(DROPDOWN.LIST);
-  if (list) {
+  const LIST = document.querySelector<HTMLDivElement>(DROPDOWN.LIST);
+  if (LIST) {
     countries.forEach((country) => {
       const flag = createFlagElement(country);
       const prefix = createPrefixElement(country);
@@ -21,7 +21,7 @@ function appendAllCountries(countries: Country[]) {
 
       link.appendChild(flag);
       link.appendChild(prefix);
-      list.appendChild(link);
+      LIST.appendChild(link);
 
       index = index + 1;
     });
@@ -54,7 +54,7 @@ function createLinkElement(country: Country, index: number) {
   link.setAttribute('aria-label', country.name);
   link.setAttribute('title', country.name);
   link.setAttribute('data-index', String(index));
-  link.setAttribute('id', 'div' + index);
+  link.setAttribute('id', 'country_' + index);
   link.href = '#';
   link.className = 'prefix-dropdown_item w-inline-block';
   link.addEventListener('click', function (event) {
@@ -71,17 +71,17 @@ function setOptionByClick(event: MouseEvent, linkClicked: HTMLLinkElement) {
 }
 
 function setcountryCode(country: Country) {
-  const countryCode = document.querySelector<HTMLInputElement>(FORM.COUNTRY_CODE);
-  if (countryCode) {
-    countryCode.value = country.prefix;
+  const COUNTRY_CODE = document.querySelector<HTMLInputElement>(FORM.COUNTRY_CODE);
+  if (COUNTRY_CODE) {
+    COUNTRY_CODE.value = country.prefix;
   }
 }
 
 function setSelected(country: Country) {
-  const toggle = document.querySelector<HTMLDivElement>(DROPDOWN.TOGGLE);
-  if (toggle) {
-    setDropDownToggleLink(country, toggle);
-    setDropDownTogglePrefix(country, toggle);
+  const TOGGLE = document.querySelector<HTMLDivElement>(DROPDOWN.TOGGLE);
+  if (TOGGLE) {
+    setDropDownToggleLink(country, TOGGLE);
+    setDropDownTogglePrefix(country, TOGGLE);
   }
 }
 
@@ -109,47 +109,47 @@ function setCurrent(country: Country) {
 }
 
 function showWrapper() {
-  const wrapper = document.querySelector<HTMLDivElement>(DROPDOWN.WRAPPER);
-  if (wrapper) {
-    wrapper.style.transition = 'all 0.075s linear';
-    wrapper.style.display = 'block';
+  const WRAPPER = document.querySelector<HTMLDivElement>(DROPDOWN.WRAPPER);
+  if (WRAPPER) {
+    WRAPPER.style.transition = 'all 0.075s linear';
+    WRAPPER.style.display = 'block';
   }
 }
 
 function setChevronIconUp() {
-  const chevron = document.querySelector<HTMLDivElement>(DROPDOWN.CHEVRON);
-  if (chevron) {
-    chevron.style.transition = 'all 0.075s linear';
-    chevron.style.transform = 'rotate(180deg)';
+  const CHEVRON = document.querySelector<HTMLDivElement>(DROPDOWN.CHEVRON);
+  if (CHEVRON) {
+    CHEVRON.style.transition = 'all 0.075s linear';
+    CHEVRON.style.transform = 'rotate(180deg)';
   }
 }
 
 function setChevronIconDown() {
-  const chevron = document.querySelector<HTMLDivElement>(DROPDOWN.CHEVRON);
-  if (chevron) {
-    chevron.style.transition = 'all 0.075s linear';
-    chevron.style.transform = 'rotate(0deg)';
+  const CHEVRON = document.querySelector<HTMLDivElement>(DROPDOWN.CHEVRON);
+  if (CHEVRON) {
+    CHEVRON.style.transition = 'all 0.075s linear';
+    CHEVRON.style.transform = 'rotate(0deg)';
   }
 }
 
 function hideWrapper() {
-  const wrapper = document.querySelector<HTMLDivElement>(DROPDOWN.WRAPPER);
-  if (wrapper) {
-    wrapper.style.transition = 'all 0.075s linear';
-    wrapper.style.display = 'none';
+  const WRAPPER = document.querySelector<HTMLDivElement>(DROPDOWN.WRAPPER);
+  if (WRAPPER) {
+    WRAPPER.style.transition = 'all 0.075s linear';
+    WRAPPER.style.display = 'none';
   }
 }
 
 const DIV_HEIGHT_AJUST = 2.2;
 
 function setFocus() {
-  const current = document.querySelector<HTMLLinkElement>(DROPDOWN.CURRENT);
-  const list = document.querySelector<HTMLDivElement>(DROPDOWN.LIST);
-  if (current && list) {
-    if (current.offsetTop !== 0) {
-      list.scrollTop = current.offsetTop - list.clientHeight / DIV_HEIGHT_AJUST;
+  const CURRENT = document.querySelector<HTMLLinkElement>(DROPDOWN.CURRENT);
+  const LIST = document.querySelector<HTMLDivElement>(DROPDOWN.LIST);
+  if (CURRENT && LIST) {
+    if (CURRENT.offsetTop !== 0) {
+      LIST.scrollTop = CURRENT.offsetTop - LIST.clientHeight / DIV_HEIGHT_AJUST;
     }
-    const currentIndex = current.getAttribute('data-index') as string;
+    const currentIndex = CURRENT.getAttribute('data-index') as string;
     arrowIndex = parseInt(currentIndex);
   }
 }
@@ -157,17 +157,17 @@ function setFocus() {
 let arrowIndex = 1;
 
 function setSeleted(selected: HTMLLinkElement) {
-  const list = document.querySelector<HTMLDivElement>(DROPDOWN.LIST);
-  if (list) {
-    list.scrollTop = selected.offsetTop - list.clientHeight / DIV_HEIGHT_AJUST;
+  const LIST = document.querySelector<HTMLDivElement>(DROPDOWN.LIST);
+  if (LIST) {
+    LIST.scrollTop = selected.offsetTop - LIST.clientHeight / DIV_HEIGHT_AJUST;
     selected.classList.add('arrowSelected');
   }
 }
 
 function addListeners() {
-  const toggle = document.querySelector<HTMLDivElement>(DROPDOWN.TOGGLE);
-  if (toggle) {
-    toggle.addEventListener('keydown', function (event: KeyboardEvent) {
+  const TOGGLE = document.querySelector<HTMLDivElement>(DROPDOWN.TOGGLE);
+  if (TOGGLE) {
+    TOGGLE.addEventListener('keydown', function (event: KeyboardEvent) {
       switch (event.key) {
         case 'ArrowDown':
           selectCountryByUpOrDown(event, 'down');
@@ -193,7 +193,7 @@ function addListeners() {
       }
     });
 
-    toggle.addEventListener('click', function () {
+    TOGGLE.addEventListener('click', function () {
       toggleList();
     });
   }
@@ -203,7 +203,7 @@ function findLetterInList(keyTyped: string) {
   const letterTyped = keyTyped.toUpperCase();
   let index = 0;
   let found = 0;
-  let link = document.getElementById('div' + index) as HTMLLinkElement;
+  let link = document.getElementById('country_' + index) as HTMLLinkElement;
   while (link && !found) {
     const compare = link.childNodes[1] as HTMLDivElement;
     if (letterTyped === compare.innerHTML.charAt(0)) {
@@ -213,7 +213,7 @@ function findLetterInList(keyTyped: string) {
       found = 1;
     }
     index = index + 1;
-    link = document.getElementById('div' + index) as HTMLLinkElement;
+    link = document.getElementById('country_' + index) as HTMLLinkElement;
   }
 }
 
@@ -243,9 +243,9 @@ export function selectCountry(country: Country) {
 }
 
 export function toggleList() {
-  const component = document.querySelector<HTMLDivElement>(DROPDOWN.COMPONENT);
-  if (component && !component.classList.contains('open')) {
-    component.classList.add('open');
+  const COMPONENT = document.querySelector<HTMLDivElement>(DROPDOWN.COMPONENT);
+  if (COMPONENT && !COMPONENT.classList.contains('open')) {
+    COMPONENT.classList.add('open');
     showWrapper();
     setChevronIconUp();
   } else {
@@ -255,9 +255,9 @@ export function toggleList() {
 }
 
 export function hideList() {
-  const component = document.querySelector<HTMLDivElement>(DROPDOWN.COMPONENT);
-  if (component && component.classList.contains('open')) {
-    component.classList.remove('open');
+  const COMPONENT = document.querySelector<HTMLDivElement>(DROPDOWN.COMPONENT);
+  if (COMPONENT && COMPONENT.classList.contains('open')) {
+    COMPONENT.classList.remove('open');
     hideWrapper();
     setChevronIconDown();
     deselectAll();
@@ -271,18 +271,18 @@ export function deselectAll() {
 }
 
 export function selectCountryByUpOrDown(event: Event, direction: string) {
-  const component = document.querySelector<HTMLDivElement>(DROPDOWN.COMPONENT);
-  if (component && component.classList.contains('open')) {
+  const COMPONENT = document.querySelector<HTMLDivElement>(DROPDOWN.COMPONENT);
+  if (COMPONENT && COMPONENT.classList.contains('open')) {
     event.preventDefault();
     if (direction === 'up') {
-      const selected = document.getElementById('div' + (arrowIndex - 1)) as HTMLLinkElement;
+      const selected = document.getElementById('country_' + (arrowIndex - 1)) as HTMLLinkElement;
       if (selected) {
         arrowIndex = arrowIndex - 1;
         deselectAll();
         setSeleted(selected);
       }
     } else {
-      const selected = document.getElementById('div' + (arrowIndex + 1)) as HTMLLinkElement;
+      const selected = document.getElementById('country_' + (arrowIndex + 1)) as HTMLLinkElement;
       if (selected) {
         arrowIndex = arrowIndex + 1;
         deselectAll();
@@ -295,10 +295,10 @@ export function selectCountryByUpOrDown(event: Event, direction: string) {
 export function selectCountryByEnterOrSpace(event: Event) {
   if (document.activeElement === document.querySelector<HTMLDivElement>(DROPDOWN.TOGGLE)) {
     event.preventDefault();
-    const component = document.querySelector<HTMLDivElement>(DROPDOWN.COMPONENT);
-    if (component && component.classList.contains('open')) {
+    const COMPONENT = document.querySelector<HTMLDivElement>(DROPDOWN.COMPONENT);
+    if (COMPONENT && COMPONENT.classList.contains('open')) {
       const dropDownCurrent = document.querySelector<HTMLLinkElement>(DROPDOWN.CURRENT);
-      const selected = document.getElementById('div' + arrowIndex) as HTMLLinkElement;
+      const selected = document.getElementById('country_' + arrowIndex) as HTMLLinkElement;
       if (dropDownCurrent && selected && dropDownCurrent !== selected) {
         const country = setCountryVariable(selected);
         selectCountry(country);
@@ -310,8 +310,8 @@ export function selectCountryByEnterOrSpace(event: Event) {
 
 export function focusOnTypedLetter(event: KeyboardEvent) {
   const keyTyped = event.key as string;
-  const component = document.querySelector<HTMLDivElement>(DROPDOWN.COMPONENT);
-  if (component && component.classList.contains('open') && keyTyped.match(/[a-z]/i)) {
+  const COMPONENT = document.querySelector<HTMLDivElement>(DROPDOWN.COMPONENT);
+  if (COMPONENT && COMPONENT.classList.contains('open') && keyTyped.match(/[a-z]/i)) {
     findLetterInList(keyTyped);
   }
 }

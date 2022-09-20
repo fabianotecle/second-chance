@@ -5,7 +5,7 @@ export interface Country {
   name: string;
 }
 
-export interface CountryRow {
+export interface CountryFromWebservice {
   idd: { root: string; suffixes: string[] };
   cca2: string;
   flags: { svg: string };
